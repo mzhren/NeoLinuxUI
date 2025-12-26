@@ -5,6 +5,7 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 export type Theme = 'dark' | 'light' | 'auto';
 export type AccentColor = 'blue' | 'purple' | 'pink' | 'green' | 'orange' | 'red';
 export type FontSize = 'small' | 'medium' | 'large' | 'xlarge';
+export type BackgroundType = 'gradient' | 'image';
 
 interface ThemeContextType {
   // Appearance
@@ -16,6 +17,10 @@ interface ThemeContextType {
   setFontSize: (size: FontSize) => void;
   transparencyEnabled: boolean;
   setTransparencyEnabled: (enabled: boolean) => void;
+  backgroundType: BackgroundType;
+  setBackgroundType: (type: BackgroundType) => void;
+  backgroundImage: string;
+  setBackgroundImage: (url: string) => void;
   
   // Display
   scaling: number;
@@ -44,6 +49,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   const [accentColor, setAccentColor] = useState<AccentColor>('blue');
   const [fontSize, setFontSize] = useState<FontSize>('medium');
   const [transparencyEnabled, setTransparencyEnabled] = useState(true);
+  const [backgroundType, setBackgroundType] = useState<BackgroundType>('gradient');
+  const [backgroundImage, setBackgroundImage] = useState('');
   const [scaling, setScaling] = useState(100);
   const [nightMode, setNightMode] = useState(false);
   const [autoUpdate, setAutoUpdate] = useState(true);
@@ -61,6 +68,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
           if (settings.accentColor) setAccentColor(settings.accentColor);
           if (settings.fontSize) setFontSize(settings.fontSize);
           if (settings.transparencyEnabled !== undefined) setTransparencyEnabled(settings.transparencyEnabled);
+          if (settings.backgroundType) setBackgroundType(settings.backgroundType);
+          if (settings.backgroundImage) setBackgroundImage(settings.backgroundImage);
           if (settings.scaling) setScaling(settings.scaling);
           if (settings.nightMode !== undefined) setNightMode(settings.nightMode);
           if (settings.autoUpdate !== undefined) setAutoUpdate(settings.autoUpdate);
@@ -81,6 +90,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         accentColor,
         fontSize,
         transparencyEnabled,
+        backgroundType,
+        backgroundImage,
         scaling,
         nightMode,
         autoUpdate,
@@ -89,7 +100,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       };
       localStorage.setItem('neolinux-settings', JSON.stringify(settings));
     }
-  }, [theme, accentColor, fontSize, transparencyEnabled, scaling, nightMode, autoUpdate, notifications, soundEnabled]);
+  }, [theme, accentColor, fontSize, transparencyEnabled, backgroundType, backgroundImage, scaling, nightMode, autoUpdate, notifications, soundEnabled]);
 
   const getAccentColorClass = () => {
     const colorMap: Record<AccentColor, string> = {
@@ -128,6 +139,10 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         setFontSize,
         transparencyEnabled,
         setTransparencyEnabled,
+        backgroundType,
+        setBackgroundType,
+        backgroundImage,
+        setBackgroundImage,
         scaling,
         setScaling,
         nightMode,

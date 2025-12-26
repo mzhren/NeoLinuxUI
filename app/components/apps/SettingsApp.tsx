@@ -18,6 +18,10 @@ export default function SettingsApp({ windowId }: SettingsAppProps) {
     setFontSize,
     transparencyEnabled,
     setTransparencyEnabled,
+    backgroundType,
+    setBackgroundType,
+    backgroundImage,
+    setBackgroundImage,
     scaling,
     setScaling,
     nightMode,
@@ -128,6 +132,98 @@ export default function SettingsApp({ windowId }: SettingsAppProps) {
                 <div className="w-11 h-6 bg-white/20 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-500/50 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
               </label>
             )}
+
+            <div className="py-4 border-b border-white/5">
+              <div className="font-medium text-white mb-2">桌面背景</div>
+              <div className="text-sm text-white/60 mb-4">选择渐变色或自定义背景图片</div>
+              
+              <div className="flex gap-3 mb-4">
+                <button
+                  onClick={() => setBackgroundType('gradient')}
+                  className={`flex-1 px-4 py-3 rounded-lg border transition-all ${
+                    backgroundType === 'gradient'
+                      ? 'bg-blue-500 border-blue-400 text-white'
+                      : 'bg-white/5 border-white/20 text-white/70 hover:bg-white/10'
+                  }`}
+                >
+                  🌈 渐变色
+                </button>
+                <button
+                  onClick={() => setBackgroundType('image')}
+                  className={`flex-1 px-4 py-3 rounded-lg border transition-all ${
+                    backgroundType === 'image'
+                      ? 'bg-blue-500 border-blue-400 text-white'
+                      : 'bg-white/5 border-white/20 text-white/70 hover:bg-white/10'
+                  }`}
+                >
+                  🖼️ 图片
+                </button>
+              </div>
+
+              {backgroundType === 'image' && (
+                <div className="space-y-4">
+                  <div>
+                    <label className="text-white/80 text-sm mb-2 block">预设壁纸</label>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { url: 'https://images.unsplash.com/photo-1579546929518-9e396f3cc809?w=1920&q=80', label: '山脉' },
+                        { url: 'https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1920&q=80', label: '山峰' },
+                        { url: 'https://images.unsplash.com/photo-1506905925346-21bda4d32df4?w=1920&q=80', label: '北极光' },
+                        { url: 'https://images.unsplash.com/photo-1557683316-973673baf926?w=1920&q=80', label: '渐变' },
+                        { url: 'https://images.unsplash.com/photo-1534796636912-3b95b3ab5986?w=1920&q=80', label: '海洋' },
+                        { url: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?w=1920&q=80', label: '星空' },
+                        { url: 'https://images.unsplash.com/photo-1470071459604-3b5ec3a7fe05?w=1920&q=80', label: '自然' },
+                        { url: 'https://images.unsplash.com/photo-1472214103451-9374bd1c798e?w=1920&q=80', label: '日落' },
+                        { url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?w=1920&q=80', label: '森林' },
+                        { url: 'https://images.unsplash.com/photo-1518837695005-2083093ee35b?w=1920&q=80', label: '海滩' },
+                        { url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?w=1920&q=80', label: '雪山' },
+                        { url: 'https://images.unsplash.com/photo-1475924156734-496f6cac6ec1?w=1920&q=80', label: '湖泊' },
+                      ].map((preset) => (
+                        <button
+                          key={preset.url}
+                          onClick={() => setBackgroundImage(preset.url)}
+                          className={`relative h-16 rounded-lg overflow-hidden border-2 transition-all ${
+                            backgroundImage === preset.url
+                              ? 'border-blue-500 ring-2 ring-blue-500/50'
+                              : 'border-white/20 hover:border-white/40'
+                          }`}
+                        >
+                          <img
+                            src={preset.url}
+                            alt={preset.label}
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
+                            <span className="text-white text-xs font-medium">{preset.label}</span>
+                          </div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <label className="text-white/80 text-sm mb-2 block">自定义URL</label>
+                    <div className="flex gap-2">
+                      <input
+                        type="text"
+                        value={backgroundImage}
+                        onChange={(e) => setBackgroundImage(e.target.value)}
+                        placeholder="输入图片URL"
+                        className="flex-1 px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                      {backgroundImage && (
+                        <button
+                          onClick={() => setBackgroundImage('')}
+                          className="px-4 py-2 bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/30 rounded-lg transition-colors"
+                        >
+                          清除
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         );
 

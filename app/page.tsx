@@ -51,6 +51,8 @@ function LinuxDesktop() {
     getFontSizeClass, 
     getBackdropBlurClass,
     transparencyEnabled,
+    backgroundType,
+    backgroundImage,
     scaling,
     nightMode 
   } = useTheme();
@@ -164,21 +166,34 @@ function LinuxDesktop() {
 
   return (
     <div 
-      className={`relative h-full w-full bg-gradient-to-br ${getBackgroundGradient()} overflow-hidden ${getFontSizeClass()} theme-${theme} accent-${accentColor} transition-all duration-300`}
+      className={`relative h-full w-full ${backgroundType === 'gradient' ? `bg-gradient-to-br ${getBackgroundGradient()}` : ''} overflow-hidden ${getFontSizeClass()} theme-${theme} accent-${accentColor} transition-all duration-300`}
       style={{ 
         transform: `scale(${scaling / 100})`,
         transformOrigin: 'top left',
         width: `${10000 / scaling}%`,
         height: `${10000 / scaling}%`,
         filter: nightMode ? 'sepia(0.2) saturate(0.8)' : 'none',
+        ...(backgroundType === 'image' && backgroundImage ? {
+          backgroundImage: `url(${backgroundImage})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat',
+        } : {}),
       }}
     >
-      {/* Animated Background */}
-      <div className="absolute inset-0 opacity-30">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
-        <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-yellow-500 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
-        <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000"></div>
-      </div>
+      {/* Background Overlay for Image Mode */}
+      {backgroundType === 'image' && backgroundImage && (
+        <div className="absolute inset-0 bg-black/30"></div>
+      )}
+      
+      {/* Animated Background - Only show in gradient mode */}
+      {backgroundType === 'gradient' && (
+        <div className="absolute inset-0 opacity-30">
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
+          <div className="absolute top-1/3 right-1/4 w-96 h-96 bg-yellow-500 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-2000"></div>
+          <div className="absolute bottom-1/4 left-1/3 w-96 h-96 bg-blue-500 rounded-full mix-blend-multiply filter blur-3xl animate-blob animation-delay-4000"></div>
+        </div>
+      )}
 
       {/* Top Bar */}
       <div className={`absolute top-0 left-0 right-0 h-8 bg-black/40 ${getBackdropBlurClass()} border-b border-white/10 flex items-center px-4 z-[9999] transition-all duration-300`}>
