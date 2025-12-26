@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useTheme } from '../../contexts/ThemeContext';
 
 interface SettingsAppProps {
   windowId: string;
@@ -8,21 +9,30 @@ type SettingsTab = 'appearance' | 'system' | 'display' | 'network' | 'privacy' |
 
 export default function SettingsApp({ windowId }: SettingsAppProps) {
   const [activeTab, setActiveTab] = useState<SettingsTab>('appearance');
+  const {
+    theme,
+    setTheme,
+    accentColor,
+    setAccentColor,
+    fontSize,
+    setFontSize,
+    transparencyEnabled,
+    setTransparencyEnabled,
+    scaling,
+    setScaling,
+    nightMode,
+    setNightMode,
+    autoUpdate,
+    setAutoUpdate,
+    notifications,
+    setNotifications,
+    soundEnabled,
+    setSoundEnabled,
+  } = useTheme();
   
-  // Appearance settings
-  const [theme, setTheme] = useState('dark');
-  const [accentColor, setAccentColor] = useState('blue');
-  const [fontSize, setFontSize] = useState('medium');
-  
-  // Display settings
+  // Display settings (local only, not affecting global theme)
   const [resolution, setResolution] = useState('1920x1080');
   const [refreshRate, setRefreshRate] = useState('60Hz');
-  const [scaling, setScaling] = useState('100');
-  
-  // System settings
-  const [autoUpdate, setAutoUpdate] = useState(true);
-  const [notifications, setNotifications] = useState(true);
-  const [soundEnabled, setSoundEnabled] = useState(true);
   
   const tabs: { id: SettingsTab; label: string; icon: string }[] = [
     { id: 'appearance', label: '外观', icon: '🎨' },
@@ -95,7 +105,7 @@ export default function SettingsApp({ windowId }: SettingsAppProps) {
               '调整系统字体大小',
               <select
                 value={fontSize}
-                onChange={(e) => setFontSize(e.target.value)}
+                onChange={(e) => setFontSize(e.target.value as 'small' | 'medium' | 'large' | 'xlarge')}
                 className="px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="small">小</option>
@@ -109,7 +119,12 @@ export default function SettingsApp({ windowId }: SettingsAppProps) {
               '透明效果',
               '启用窗口和背景的模糊透明效果',
               <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" className="sr-only peer" defaultChecked />
+                <input 
+                  type="checkbox" 
+                  className="sr-only peer" 
+                  checked={transparencyEnabled}
+                  onChange={(e) => setTransparencyEnabled(e.target.checked)}
+                />
                 <div className="w-11 h-6 bg-white/20 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-500/50 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
               </label>
             )}
@@ -226,7 +241,7 @@ export default function SettingsApp({ windowId }: SettingsAppProps) {
                   max="200"
                   step="25"
                   value={scaling}
-                  onChange={(e) => setScaling(e.target.value)}
+                  onChange={(e) => setScaling(Number(e.target.value))}
                   className="w-32"
                 />
                 <span className="text-white font-medium w-12">{scaling}%</span>
@@ -237,7 +252,12 @@ export default function SettingsApp({ windowId }: SettingsAppProps) {
               '夜间模式',
               '减少蓝光以保护眼睛',
               <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" className="sr-only peer" />
+                <input 
+                  type="checkbox" 
+                  className="sr-only peer" 
+                  checked={nightMode}
+                  onChange={(e) => setNightMode(e.target.checked)}
+                />
                 <div className="w-11 h-6 bg-white/20 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-500/50 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-500"></div>
               </label>
             )}

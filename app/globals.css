@@ -97,3 +97,45 @@ body {
   animation: glow 2s ease-in-out infinite;
 }
 
+/* Accent Color Classes */
+.accent-blue .window-content {
+  scrollbar-color: rgba(59, 130, 246, 0.5) transparent;
+}
+
+.accent-purple .window-content {
+  scrollbar-color: rgba(168, 85, 247, 0.5) transparent;
+}
+
+.accent-pink .window-content {
+  scrollbar-color: rgba(236, 72, 153, 0.5) transparent;
+}
+
+.accent-green .window-content {
+  scrollbar-color: rgba(34, 197, 94, 0.5) transparent;
+}
+
+.accent-orange .window-content {
+  scrollbar-color: rgba(249, 115, 22, 0.5) transparent;
+}
+
+.accent-red .window-content {
+  scrollbar-color: rgba(239, 68, 68, 0.5) transparent;
+}
+
+/* Light Theme Support */
+.theme-light {
+  --background: #f0f0f0;
+  --foreground: #1a1a1a;
+}
+
+.theme-light .text-white {
+  color: #1a1a1a !important;
+}
+
+.theme-light .bg-black\/40 {
+  background-color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.theme-light .bg-gray-900\/80 {
+  background-color: rgba(240, 240, 240, 0.95) !important;
+}

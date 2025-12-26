@@ -13,6 +13,7 @@ import {
   SettingsApp 
 } from './components/apps';
 import Dock from './components/Dock';
+import { useTheme } from './contexts/ThemeContext';
 
 interface Window {
   id: string;
@@ -43,6 +44,16 @@ function LinuxDesktop() {
   const [cpuUsage, setCpuUsage] = useState(0);
   const [memUsage, setMemUsage] = useState(0);
   const [showWidgetMenu, setShowWidgetMenu] = useState(false);
+  
+  const { 
+    theme, 
+    accentColor, 
+    getFontSizeClass, 
+    getBackdropBlurClass,
+    transparencyEnabled,
+    scaling,
+    nightMode 
+  } = useTheme();
 
   // 初始化默认 widgets（避免 SSR 错误）
   useEffect(() => {
@@ -135,8 +146,33 @@ function LinuxDesktop() {
     setWidgets(widgets.filter(w => w.id !== id));
   };
 
+  // 获取主题背景渐变
+  const getBackgroundGradient = () => {
+    if (theme === 'light') {
+      return 'from-blue-100 via-purple-100 to-pink-100';
+    }
+    const accentGradients: Record<string, string> = {
+      blue: 'from-blue-900 via-indigo-900 to-purple-900',
+      purple: 'from-purple-900 via-violet-900 to-fuchsia-900',
+      pink: 'from-pink-900 via-rose-900 to-red-900',
+      green: 'from-green-900 via-emerald-900 to-teal-900',
+      orange: 'from-orange-900 via-amber-900 to-yellow-900',
+      red: 'from-red-900 via-rose-900 to-pink-900',
+    };
+    return accentGradients[accentColor] || 'from-purple-900 via-blue-900 to-indigo-900';
+  };
+
   return (
-    <div className="relative h-full w-full bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900 overflow-hidden">
+    <div 
+      className={`relative h-full w-full bg-gradient-to-br ${getBackgroundGradient()} overflow-hidden ${getFontSizeClass()} theme-${theme} accent-${accentColor} transition-all duration-300`}
+      style={{ 
+        transform: `scale(${scaling / 100})`,
+        transformOrigin: 'top left',
+        width: `${10000 / scaling}%`,
+        height: `${10000 / scaling}%`,
+        filter: nightMode ? 'sepia(0.2) saturate(0.8)' : 'none',
+      }}
+    >
       {/* Animated Background */}
       <div className="absolute inset-0 opacity-30">
         <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-pink-500 rounded-full mix-blend-multiply filter blur-3xl animate-blob"></div>
@@ -145,7 +181,7 @@ function LinuxDesktop() {
       </div>
 
       {/* Top Bar */}
-      <div className="absolute top-0 left-0 right-0 h-8 bg-black/40 backdrop-blur-xl border-b border-white/10 flex items-center px-4 z-[9999]">
+      <div className={`absolute top-0 left-0 right-0 h-8 bg-black/40 ${getBackdropBlurClass()} border-b border-white/10 flex items-center px-4 z-[9999] transition-all duration-300`}>
         <div className="flex items-center gap-4">
           <div className="font-bold text-white text-sm flex items-center gap-2">
             <div className="w-5 h-5 bg-gradient-to-br from-cyan-400 to-blue-600 rounded"></div>
@@ -168,7 +204,7 @@ function LinuxDesktop() {
               <span>🧩</span> Widgets
             </button>
             {showWidgetMenu && (
-              <div className="absolute top-full left-0 mt-1 bg-black/90 backdrop-blur-xl border border-white/20 rounded-lg shadow-2xl overflow-hidden min-w-[160px] z-[10000]">
+              <div className={`absolute top-full left-0 mt-1 bg-black/90 ${getBackdropBlurClass()} border border-white/20 rounded-lg shadow-2xl overflow-hidden min-w-[160px] z-[10000] transition-all duration-300`}>
                 <button onClick={() => addWidget('clock')} className="w-full text-left px-4 py-2 text-white text-xs hover:bg-white/10 transition-colors flex items-center gap-2">
                   🕐 Clock
                 </button>
@@ -279,6 +315,19 @@ function DraggableWindow({
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
   const [resizing, setResizing] = useState<string | null>(null);
   const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 });
+  const { getBackdropBlurClass, accentColor } = useTheme();
+
+  const getTitleBarGradient = () => {
+    const gradients: Record<string, string> = {
+      blue: 'from-blue-600/40 to-cyan-600/40',
+      purple: 'from-purple-600/40 to-pink-600/40',
+      pink: 'from-pink-600/40 to-rose-600/40',
+      green: 'from-green-600/40 to-emerald-600/40',
+      orange: 'from-orange-600/40 to-amber-600/40',
+      red: 'from-red-600/40 to-rose-600/40',
+    };
+    return gradients[accentColor] || 'from-purple-600/40 to-blue-600/40';
+  };
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('.window-content')) return;
@@ -371,13 +420,13 @@ function DraggableWindow({
   return (
     <div
       ref={windowRef}
-      className="absolute bg-gray-900/80 backdrop-blur-2xl rounded-xl shadow-2xl border border-white/20 overflow-hidden"
+      className={`absolute bg-gray-900/80 ${getBackdropBlurClass()} rounded-xl shadow-2xl border border-white/20 overflow-hidden transition-all duration-300`}
       style={{ ...style, zIndex: window.zIndex }}
       onMouseDown={onFocus}
     >
       {/* Title Bar */}
       <div
-        className="h-10 bg-gradient-to-r from-purple-600/40 to-blue-600/40 backdrop-blur-xl border-b border-white/10 flex items-center px-4 cursor-move"
+        className={`h-10 bg-gradient-to-r ${getTitleBarGradient()} ${getBackdropBlurClass()} border-b border-white/10 flex items-center px-4 cursor-move transition-all duration-300`}
         onMouseDown={handleMouseDown}
       >
         <span className="text-white font-medium text-sm flex-1">{window.title}</span>
