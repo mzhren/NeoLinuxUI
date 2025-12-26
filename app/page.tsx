@@ -11,6 +11,7 @@ import {
   AppListApp, 
   BrowserApp 
 } from './components/apps';
+import Dock from './components/Dock';
 
 interface Window {
   id: string;
@@ -223,24 +224,11 @@ function LinuxDesktop() {
       ))}
 
       {/* Dock */}
-      <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex items-end gap-2 bg-black/40 backdrop-blur-xl px-4 py-2 rounded-2xl border border-white/20 z-[9998]">
-        <DockIcon icon="💻" label="Terminal" onClick={() => openWindow('terminal')} />
-        <DockIcon icon="📁" label="Files" onClick={() => openWindow('files')} />
-        <DockIcon icon="🌐" label="Chrome" onClick={() => openWindow('browser')} />
-        <DockIcon icon="📊" label="Monitor" onClick={() => openWindow('monitor')} />
-        <DockIcon icon="🛍️" label="App Store" onClick={() => openWindow('appstore')} />
-        <DockIcon icon="ℹ️" label="About" onClick={() => openWindow('about')} />
-        <div className="w-px h-12 bg-white/20 mx-1"></div>
-        {windows.filter(w => w.minimized).map(w => (
-          <DockIcon
-            key={w.id}
-            icon={w.type === 'terminal' ? '💻' : w.type === 'files' ? '📁' : w.type === 'monitor' ? '📊' : w.type === 'appstore' ? '🛍️' : w.type === 'applist' ? '📱' : w.type === 'browser' ? '🌐' : 'ℹ️'}
-            label={w.title}
-            onClick={() => restoreWindow(w.id)}
-            minimized
-          />
-        ))}
-      </div>
+      <Dock 
+        windows={windows}
+        openWindow={openWindow}
+        restoreWindow={restoreWindow}
+      />
     </div>
   );
 }
@@ -254,23 +242,6 @@ function DesktopIcon({ icon, label, onClick }: { icon: string; label: string; on
       <div className="text-4xl group-hover:scale-110 transition-transform">{icon}</div>
       <span className="text-white text-xs font-medium drop-shadow-lg">{label}</span>
     </button>
-  );
-}
-
-function DockIcon({ icon, label, onClick, minimized }: { icon: string; label: string; onClick: () => void; minimized?: boolean }) {
-  return (
-    <div className="relative group">
-      <button
-        onClick={onClick}
-        className={`text-3xl hover:scale-125 transition-all duration-200 p-2 hover:-translate-y-2 ${minimized ? 'opacity-60' : ''}`}
-        title={label}
-      >
-        {icon}
-      </button>
-      <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-black/80 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap">
-        {label}
-      </div>
-    </div>
   );
 }
 
