@@ -252,7 +252,14 @@ function LinuxDesktop() {
             <div className="w-2 h-2 bg-blue-400 rounded-full animate-pulse"></div>
             <span>MEM: {memUsage.toFixed(0)}%</span>
           </div>
-          <span>{time.toLocaleTimeString()}</span>
+          <div className="flex items-center gap-2 hover:bg-white/10 px-2 py-1 rounded transition-colors cursor-pointer">
+            <span className="text-base">📶</span>
+            <span>WiFi</span>
+          </div>
+          <div className="flex items-center gap-2 px-2 py-1">
+            <span>{time.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })}</span>
+            <span>{time.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}</span>
+          </div>
         </div>
       </div>
 
