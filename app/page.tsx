@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { DraggableWidget, type Widget } from './components/widgets';
 
 interface Window {
   id: string;
@@ -15,15 +16,6 @@ interface Window {
   maximized: boolean;
 }
 
-interface Widget {
-  id: string;
-  type: 'clock' | 'weather' | 'calendar' | 'music' | 'system-info' | 'notes';
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
 export default function Home() {
   return (
     <div className="h-screen w-screen overflow-hidden">
@@ -34,15 +26,22 @@ export default function Home() {
 
 function LinuxDesktop() {
   const [windows, setWindows] = useState<Window[]>([]);
-  const [widgets, setWidgets] = useState<Widget[]>([
-    { id: '1', type: 'clock', x: window.innerWidth - 320, y: 50, width: 280, height: 120 },
-    { id: '2', type: 'weather', x: window.innerWidth - 320, y: 190, width: 280, height: 160 },
-  ]);
+  const [widgets, setWidgets] = useState<Widget[]>([]);
   const [nextZIndex, setNextZIndex] = useState(1000);
   const [time, setTime] = useState(new Date());
   const [cpuUsage, setCpuUsage] = useState(0);
   const [memUsage, setMemUsage] = useState(0);
   const [showWidgetMenu, setShowWidgetMenu] = useState(false);
+
+  // 初始化默认 widgets（避免 SSR 错误）
+  useEffect(() => {
+    if (widgets.length === 0 && typeof window !== 'undefined') {
+      setWidgets([
+        { id: '1', type: 'clock', x: window.innerWidth - 320, y: 50, width: 280, height: 120 },
+        { id: '2', type: 'weather', x: window.innerWidth - 320, y: 190, width: 280, height: 160 },
+      ]);
+    }
+  }, []);
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 1000);
@@ -279,7 +278,8 @@ function DraggableWindow({
   const windowRef = useRef<HTMLDivElement>(null);
   const [dragging, setDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [resizing, setResizing] = useState(false);
+  const [resizing, setResizing] = useState<string | null>(null);
+  const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 });
 
   const handleMouseDown = (e: React.MouseEvent) => {
     if ((e.target as HTMLElement).closest('.window-content')) return;
@@ -288,6 +288,18 @@ function DraggableWindow({
     setDragOffset({
       x: e.clientX - window.x,
       y: e.clientY - window.y
+    });
+  };
+
+  const handleResizeStart = (e: React.MouseEvent, direction: string) => {
+    e.stopPropagation();
+    onFocus();
+    setResizing(direction);
+    setResizeStart({
+      x: e.clientX,
+      y: e.clientY,
+      width: window.width,
+      height: window.height
     });
   };
 
@@ -300,11 +312,47 @@ function DraggableWindow({
             : w
         ));
       }
+
+      if (resizing && !window.maximized) {
+        const deltaX = e.clientX - resizeStart.x;
+        const deltaY = e.clientY - resizeStart.y;
+        
+        setWindows(prev => prev.map(w => {
+          if (w.id === window.id) {
+            const updates: Partial<Window> = {};
+            
+            // 处理不同方向的调整
+            if (resizing.includes('e')) {
+              updates.width = Math.max(300, resizeStart.width + deltaX);
+            }
+            if (resizing.includes('s')) {
+              updates.height = Math.max(200, resizeStart.height + deltaY);
+            }
+            if (resizing.includes('w')) {
+              const newWidth = Math.max(300, resizeStart.width - deltaX);
+              if (newWidth > 300) {
+                updates.x = w.x + (resizeStart.width - newWidth);
+                updates.width = newWidth;
+              }
+            }
+            if (resizing.includes('n')) {
+              const newHeight = Math.max(200, resizeStart.height - deltaY);
+              if (newHeight > 200) {
+                updates.y = w.y + (resizeStart.height - newHeight);
+                updates.height = newHeight;
+              }
+            }
+            
+            return { ...w, ...updates };
+          }
+          return w;
+        }));
+      }
     };
 
     const handleMouseUp = () => {
       setDragging(false);
-      setResizing(false);
+      setResizing(null);
     };
 
     if (dragging || resizing) {
@@ -315,7 +363,7 @@ function DraggableWindow({
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [dragging, resizing, dragOffset, window.id, window.maximized, setWindows]);
+  }, [dragging, resizing, dragOffset, resizeStart, window.id, window.maximized, setWindows]);
 
   const style = window.maximized
     ? { top: 32, left: 0, right: 0, bottom: 0, width: '100%', height: 'calc(100% - 32px)' }
@@ -324,7 +372,7 @@ function DraggableWindow({
   return (
     <div
       ref={windowRef}
-      className="absolute bg-gray-900/80 backdrop-blur-2xl rounded-xl shadow-2xl border border-white/20 overflow-hidden transition-all"
+      className="absolute bg-gray-900/80 backdrop-blur-2xl rounded-xl shadow-2xl border border-white/20 overflow-hidden"
       style={{ ...style, zIndex: window.zIndex }}
       onMouseDown={onFocus}
     >
@@ -352,16 +400,61 @@ function DraggableWindow({
 
       {/* Content */}
       <div className="window-content h-[calc(100%-2.5rem)] overflow-auto">
-        {window.type === 'terminal' && <Terminal />}
-        {window.type === 'files' && <FileManager />}
-        {window.type === 'monitor' && <SystemMonitor />}
-        {window.type === 'about' && <About />}
+        {window.type === 'terminal' && <TerminalApp />}
+        {window.type === 'files' && <FilesApp />}
+        {window.type === 'monitor' && <MonitorApp />}
+        {window.type === 'about' && <AboutApp />}
       </div>
+
+      {/* Resize Handles - 只在非最大化时显示 */}
+      {!window.maximized && (
+        <>
+          {/* 四角 */}
+          <div
+            onMouseDown={(e) => handleResizeStart(e, 'nw')}
+            className="absolute top-0 left-0 w-3 h-3 cursor-nw-resize z-10"
+          />
+          <div
+            onMouseDown={(e) => handleResizeStart(e, 'ne')}
+            className="absolute top-0 right-0 w-3 h-3 cursor-ne-resize z-10"
+          />
+          <div
+            onMouseDown={(e) => handleResizeStart(e, 'sw')}
+            className="absolute bottom-0 left-0 w-3 h-3 cursor-sw-resize z-10"
+          />
+          <div
+            onMouseDown={(e) => handleResizeStart(e, 'se')}
+            className="absolute bottom-0 right-0 w-3 h-3 cursor-se-resize z-10"
+          />
+          
+          {/* 四边 */}
+          <div
+            onMouseDown={(e) => handleResizeStart(e, 'n')}
+            className="absolute top-0 left-3 right-3 h-1 cursor-n-resize z-10"
+          />
+          <div
+            onMouseDown={(e) => handleResizeStart(e, 's')}
+            className="absolute bottom-0 left-3 right-3 h-1 cursor-s-resize z-10"
+          />
+          <div
+            onMouseDown={(e) => handleResizeStart(e, 'w')}
+            className="absolute top-3 bottom-3 left-0 w-1 cursor-w-resize z-10"
+          />
+          <div
+            onMouseDown={(e) => handleResizeStart(e, 'e')}
+            className="absolute top-3 bottom-3 right-0 w-1 cursor-e-resize z-10"
+          />
+        </>
+      )}
     </div>
   );
 }
 
-function Terminal() {
+// ============================================
+// 应用组件
+// ============================================
+
+function TerminalApp() {
   const [lines, setLines] = useState<string[]>([
     '╔═══════════════════════════════════════════════╗',
     '║         NeoLinux Terminal v2.0                ║',
@@ -453,7 +546,7 @@ function Terminal() {
   );
 }
 
-function FileManager() {
+function FilesApp() {
   const [currentPath, setCurrentPath] = useState('/home/neo');
   const files = [
     { name: 'Documents', type: 'folder', icon: '📁', size: '-' },
@@ -494,7 +587,7 @@ function FileManager() {
   );
 }
 
-function SystemMonitor() {
+function MonitorApp() {
   const [cpuHistory, setCpuHistory] = useState<number[]>(Array(20).fill(0));
   const [memHistory, setMemHistory] = useState<number[]>(Array(20).fill(0));
 
@@ -559,7 +652,7 @@ function SystemMonitor() {
   );
 }
 
-function About() {
+function AboutApp() {
   return (
     <div className="h-full p-8 bg-black/30 flex flex-col items-center justify-center text-center">
       <div className="w-24 h-24 bg-gradient-to-br from-cyan-400 via-blue-500 to-purple-600 rounded-2xl mb-6 animate-pulse"></div>
@@ -581,314 +674,6 @@ function About() {
           GitHub
         </div>
       </div>
-    </div>
-  );
-}
-
-function DraggableWidget({
-  widget,
-  onRemove,
-  setWidgets
-}: {
-  widget: Widget;
-  onRemove: () => void;
-  setWidgets: React.Dispatch<React.SetStateAction<Widget[]>>;
-}) {
-  const [dragging, setDragging] = useState(false);
-  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const widgetRef = useRef<HTMLDivElement>(null);
-
-  const handleMouseDown = (e: React.MouseEvent) => {
-    // 只允许从拖动手柄或边缘区域拖动
-    const target = e.target as HTMLElement;
-    if (
-      target.closest('.widget-interactive') || 
-      target.closest('button') || 
-      target.closest('input') || 
-      target.closest('textarea')
-    ) {
-      return;
-    }
-
-    setDragging(true);
-    setDragOffset({
-      x: e.clientX - widget.x,
-      y: e.clientY - widget.y
-    });
-    e.stopPropagation();
-  };
-
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (dragging) {
-        setWidgets(prev => prev.map(w => 
-          w.id === widget.id 
-            ? { ...w, x: e.clientX - dragOffset.x, y: e.clientY - dragOffset.y }
-            : w
-        ));
-      }
-    };
-
-    const handleMouseUp = () => {
-      setDragging(false);
-    };
-
-    if (dragging) {
-      document.addEventListener('mousemove', handleMouseMove);
-      document.addEventListener('mouseup', handleMouseUp);
-      return () => {
-        document.removeEventListener('mousemove', handleMouseMove);
-        document.removeEventListener('mouseup', handleMouseUp);
-      };
-    }
-  }, [dragging, dragOffset, widget.id, setWidgets]);
-
-  return (
-    <div
-      ref={widgetRef}
-      className="absolute bg-black/40 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/20 overflow-hidden group cursor-move"
-      style={{ 
-        top: widget.y, 
-        left: widget.x, 
-        width: widget.width, 
-        height: widget.height,
-        zIndex: 500
-      }}
-      onMouseDown={handleMouseDown}
-    >
-      {/* Drag Handle - Top Area */}
-      <div className="absolute top-0 left-0 right-0 h-8 opacity-0 group-hover:opacity-100 transition-opacity z-10 flex items-center justify-center">
-        <div className="w-12 h-1 bg-white/40 rounded-full"></div>
-      </div>
-
-      {/* Widget Close Button */}
-      <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity z-20">
-        <button
-          onClick={(e) => {
-            e.stopPropagation();
-            onRemove();
-          }}
-          className="w-6 h-6 rounded-full bg-red-500/80 hover:bg-red-500 transition-colors flex items-center justify-center text-white text-xs cursor-pointer"
-        >
-          ✕
-        </button>
-      </div>
-
-      {/* Widget Content */}
-      <div className="h-full p-4">
-        {widget.type === 'clock' && <ClockWidget />}
-        {widget.type === 'weather' && <WeatherWidget />}
-        {widget.type === 'calendar' && <CalendarWidget />}
-        {widget.type === 'music' && <MusicWidget />}
-        {widget.type === 'system-info' && <SystemInfoWidget />}
-        {widget.type === 'notes' && <NotesWidget />}
-      </div>
-    </div>
-  );
-}
-
-function ClockWidget() {
-  const [time, setTime] = useState(new Date());
-
-  useEffect(() => {
-    const timer = setInterval(() => setTime(new Date()), 1000);
-    return () => clearInterval(timer);
-  }, []);
-
-  return (
-    <div className="h-full flex flex-col items-center justify-center">
-      <div className="text-5xl font-bold text-white mb-2 font-mono">
-        {time.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-      </div>
-      <div className="text-lg text-white/60">
-        {time.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
-      </div>
-    </div>
-  );
-}
-
-function WeatherWidget() {
-  const weatherConditions = ['☀️ Sunny', '⛅ Partly Cloudy', '☁️ Cloudy', '🌧️ Rainy'];
-  const [weather] = useState(weatherConditions[Math.floor(Math.random() * weatherConditions.length)]);
-  const [temp] = useState(Math.floor(Math.random() * 15) + 15);
-
-  return (
-    <div className="h-full flex flex-col justify-between">
-      <div>
-        <div className="text-white/60 text-sm mb-2">San Francisco, CA</div>
-        <div className="text-6xl mb-4">{weather.split(' ')[0]}</div>
-      </div>
-      <div>
-        <div className="text-5xl font-bold text-white mb-1">{temp}°C</div>
-        <div className="text-white/60">{weather.split(' ').slice(1).join(' ')}</div>
-      </div>
-    </div>
-  );
-}
-
-function CalendarWidget() {
-  const [currentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(new Date());
-
-  const daysInMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate();
-  const firstDay = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay();
-
-  const days = [];
-  for (let i = 0; i < firstDay; i++) {
-    days.push(<div key={`empty-${i}`} className="aspect-square"></div>);
-  }
-  for (let i = 1; i <= daysInMonth; i++) {
-    const isToday = i === currentDate.getDate();
-    const isSelected = i === selectedDate.getDate();
-    days.push(
-      <button
-        key={i}
-        onClick={() => setSelectedDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), i))}
-        className={`widget-interactive aspect-square flex items-center justify-center text-sm rounded-lg transition-colors cursor-pointer ${
-          isToday ? 'bg-blue-500 text-white font-bold' : 
-          isSelected ? 'bg-white/20 text-white' :
-          'text-white/80 hover:bg-white/10'
-        }`}
-      >
-        {i}
-      </button>
-    );
-  }
-
-  return (
-    <div className="h-full flex flex-col">
-      <div className="text-white font-bold mb-4 text-center">
-        {currentDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}
-      </div>
-      <div className="grid grid-cols-7 gap-1 text-white/60 text-xs mb-2 text-center">
-        <div>Su</div>
-        <div>Mo</div>
-        <div>Tu</div>
-        <div>We</div>
-        <div>Th</div>
-        <div>Fr</div>
-        <div>Sa</div>
-      </div>
-      <div className="grid grid-cols-7 gap-1 flex-1">
-        {days}
-      </div>
-    </div>
-  );
-}
-
-function MusicWidget() {
-  const [playing, setPlaying] = useState(false);
-  const [progress, setProgress] = useState(45);
-
-  useEffect(() => {
-    if (playing) {
-      const timer = setInterval(() => {
-        setProgress(prev => (prev >= 100 ? 0 : prev + 0.5));
-      }, 100);
-      return () => clearInterval(timer);
-    }
-  }, [playing]);
-
-  return (
-    <div className="h-full flex flex-col justify-between">
-      <div className="flex items-center gap-3">
-        <div className="w-16 h-16 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center text-2xl">
-          🎵
-        </div>
-        <div className="flex-1">
-          <div className="text-white font-medium">Neon Dreams</div>
-          <div className="text-white/60 text-sm">Synthwave Artist</div>
-        </div>
-      </div>
-      
-      <div>
-        <div className="w-full bg-white/20 rounded-full h-1 mb-3">
-          <div 
-            className="bg-gradient-to-r from-cyan-400 to-blue-500 h-1 rounded-full transition-all"
-            style={{ width: `${progress}%` }}
-          ></div>
-        </div>
-        
-        <div className="flex items-center justify-center gap-4">
-          <button className="widget-interactive text-white/80 hover:text-white text-xl cursor-pointer">⏮️</button>
-          <button 
-            onClick={() => setPlaying(!playing)}
-            className="widget-interactive w-12 h-12 rounded-full bg-white/20 hover:bg-white/30 flex items-center justify-center text-2xl text-white transition-colors cursor-pointer"
-          >
-            {playing ? '⏸️' : '▶️'}
-          </button>
-          <button className="widget-interactive text-white/80 hover:text-white text-xl cursor-pointer">⏭️</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function SystemInfoWidget() {
-  const [cpu, setCpu] = useState(0);
-  const [mem, setMem] = useState(0);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCpu(Math.random() * 100);
-      setMem(30 + Math.random() * 40);
-    }, 2000);
-    return () => clearInterval(timer);
-  }, []);
-
-  return (
-    <div className="h-full flex flex-col gap-4">
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-white/80 text-sm">CPU</span>
-          <span className="text-cyan-400 text-sm font-bold">{cpu.toFixed(0)}%</span>
-        </div>
-        <div className="w-full bg-white/20 rounded-full h-2">
-          <div 
-            className="bg-gradient-to-r from-cyan-400 to-blue-500 h-2 rounded-full transition-all"
-            style={{ width: `${cpu}%` }}
-          ></div>
-        </div>
-      </div>
-
-      <div>
-        <div className="flex items-center justify-between mb-2">
-          <span className="text-white/80 text-sm">Memory</span>
-          <span className="text-purple-400 text-sm font-bold">{mem.toFixed(0)}%</span>
-        </div>
-        <div className="w-full bg-white/20 rounded-full h-2">
-          <div 
-            className="bg-gradient-to-r from-purple-400 to-pink-500 h-2 rounded-full transition-all"
-            style={{ width: `${mem}%` }}
-          ></div>
-        </div>
-      </div>
-
-      <div className="flex-1 bg-black/30 rounded-lg p-3 flex flex-col justify-center gap-2 text-sm text-white/60">
-        <div>💾 Disk: 234GB / 512GB</div>
-        <div>🌐 Network: 45.2 MB/s</div>
-        <div>⚡ Uptime: 3d 14h 27m</div>
-      </div>
-    </div>
-  );
-}
-
-function NotesWidget() {
-  const [note, setNote] = useState('Click to add a note...');
-
-  return (
-    <div className="h-full">
-      <div className="text-white font-medium mb-3 flex items-center gap-2">
-        <span>📝</span>
-        Quick Notes
-      </div>
-      <textarea
-        value={note}
-        onChange={(e) => setNote(e.target.value)}
-        onFocus={(e) => note === 'Click to add a note...' && setNote('')}
-        className="widget-interactive w-full h-[calc(100%-2rem)] bg-black/30 rounded-lg p-3 text-white text-sm resize-none outline-none border border-white/10 focus:border-white/30 transition-colors cursor-text"
-        placeholder="Type your notes here..."
-      />
     </div>
   );
 }
