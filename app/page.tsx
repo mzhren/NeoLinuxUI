@@ -261,6 +261,8 @@ function LinuxDesktop() {
         <DesktopIcon icon="📁" label="Home" onClick={() => openWindow('files')} />
         <DesktopIcon icon="🗂️" label="Documents" onClick={() => openWindow('files')} />
         <DesktopIcon icon="🖼️" label="Pictures" onClick={() => openWindow('files')} />
+        <DesktopIcon icon="⚙️" label="Settings" onClick={() => openWindow('settings')} />
+        <DesktopIcon icon="📱" label="Applications" onClick={() => openWindow('applist')} />
       </div>
 
       {/* Widgets */}
