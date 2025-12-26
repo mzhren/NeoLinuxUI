@@ -118,6 +118,21 @@ function DockIcon({
   const iconRef = useRef<HTMLButtonElement>(null);
   const [scale, setScale] = useState(1);
   const [translateY, setTranslateY] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const [gradientColor] = useState(() => {
+    // 随机生成渐变颜色
+    const colors = [
+      'from-blue-400 to-cyan-400',
+      'from-purple-400 to-pink-400',
+      'from-green-400 to-emerald-400',
+      'from-orange-400 to-red-400',
+      'from-yellow-400 to-amber-400',
+      'from-indigo-400 to-purple-400',
+      'from-pink-400 to-rose-400',
+      'from-teal-400 to-cyan-400',
+    ];
+    return colors[Math.floor(Math.random() * colors.length)];
+  });
 
   useEffect(() => {
     if (mouseX !== null && mouseX !== undefined && mouseY !== null && mouseY !== undefined && iconRef.current) {
@@ -161,6 +176,8 @@ function DockIcon({
       <button
         ref={iconRef}
         onClick={onClick}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
         className={`text-3xl p-1.5 transition-all duration-300 ease-out origin-bottom ${minimized ? 'opacity-60' : ''}`}
         style={{
           transform: `scale(${scale}) translateY(${translateY}px)`,
@@ -174,11 +191,16 @@ function DockIcon({
         className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-black/90 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none"
         style={{ zIndex: 10000 }}
       >
-        {label}
+        {label} 
       </div>
       {/* 运行中指示器 */}
       {!minimized && (
-        <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 w-1 h-1 bg-white rounded-full"></div>
+        <div 
+          className={`absolute bottom-[2px] left-1/2 transform -translate-x-1/2 h-1 rounded-full bg-gradient-to-r ${gradientColor} transition-all duration-300 ease-out`}
+          style={{
+            width: isHovered ? '24px' : '4px',
+          }}
+        ></div>
       )}
     </div>
   );
