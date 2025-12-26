@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from 'react';
 interface Window {
   id: string;
   title: string;
-  type: 'terminal' | 'files' | 'monitor' | 'about' | 'appstore' | 'applist' | 'browser';
+  type: 'terminal' | 'files' | 'monitor' | 'about' | 'appstore' | 'applist' | 'browser' | 'settings';
   minimized: boolean;
 }
 
@@ -39,6 +39,7 @@ export default function Dock({ windows, openWindow, restoreWindow }: DockProps) 
     { icon: '🌐', label: 'Chrome', type: 'browser' as const },
     { icon: '📊', label: 'Monitor', type: 'monitor' as const },
     { icon: '🛍️', label: 'App Store', type: 'appstore' as const },
+    { icon: '⚙️', label: 'Settings', type: 'settings' as const },
     { icon: 'ℹ️', label: 'About', type: 'about' as const },
   ];
 
@@ -91,6 +92,7 @@ function getWindowIcon(type: Window['type']): string {
     appstore: '🛍️',
     applist: '📱',
     browser: '🌐',
+    settings: '⚙️',
     about: 'ℹ️',
   };
   return iconMap[type] || 'ℹ️';

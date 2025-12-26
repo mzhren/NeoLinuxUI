@@ -9,14 +9,15 @@ import {
   AboutApp, 
   AppStoreApp, 
   AppListApp, 
-  BrowserApp 
+  BrowserApp,
+  SettingsApp 
 } from './components/apps';
 import Dock from './components/Dock';
 
 interface Window {
   id: string;
   title: string;
-  type: 'terminal' | 'files' | 'monitor' | 'about' | 'appstore' | 'applist' | 'browser';
+  type: 'terminal' | 'files' | 'monitor' | 'about' | 'appstore' | 'applist' | 'browser' | 'settings';
   x: number;
   y: number;
   width: number;
@@ -65,15 +66,28 @@ function LinuxDesktop() {
     };
   }, []);
 
+  // 窗口配置
+  const WINDOW_CONFIG: Record<Window['type'], { title: string; width: number; height: number }> = {
+    terminal: { title: 'Terminal', width: 700, height: 450 },
+    files: { title: 'Files', width: 600, height: 500 },
+    monitor: { title: 'System Monitor', width: 500, height: 400 },
+    appstore: { title: 'App Store', width: 800, height: 600 },
+    applist: { title: 'Applications', width: 600, height: 500 },
+    browser: { title: 'Chrome Browser', width: 1000, height: 700 },
+    settings: { title: 'Settings', width: 900, height: 600 },
+    about: { title: 'About', width: 600, height: 500 },
+  };
+
   const openWindow = (type: Window['type']) => {
+    const config = WINDOW_CONFIG[type];
     const newWindow: Window = {
       id: Date.now().toString(),
-      title: type === 'terminal' ? 'Terminal' : type === 'files' ? 'Files' : type === 'monitor' ? 'System Monitor' : type === 'appstore' ? 'App Store' : type === 'applist' ? 'Applications' : type === 'browser' ? 'Chrome Browser' : 'About',
+      title: config.title,
       type,
       x: 100 + windows.length * 30,
       y: 80 + windows.length * 30,
-      width: type === 'terminal' ? 700 : type === 'monitor' ? 500 : type === 'appstore' ? 800 : type === 'applist' ? 600 : type === 'browser' ? 1000 : 600,
-      height: type === 'terminal' ? 450 : type === 'monitor' ? 400 : type === 'appstore' ? 600 : type === 'applist' ? 500 : type === 'browser' ? 700 : 500,
+      width: config.width,
+      height: config.height,
       zIndex: nextZIndex,
       minimized: false,
       maximized: false,
@@ -391,6 +405,7 @@ function DraggableWindow({
         {window.type === 'appstore' && <AppStoreApp />}
         {window.type === 'applist' && <AppListApp />}
         {window.type === 'browser' && <BrowserApp />}
+        {window.type === 'settings' && <SettingsApp windowId={window.id} />}
         {window.type === 'about' && <AboutApp />}
       </div>
 
