@@ -14,6 +14,7 @@ import {
 } from './components/apps';
 import Dock from './components/Dock';
 import { useTheme } from './contexts/ThemeContext';
+import LoginScreen from './components/LoginScreen';
 
 interface Window {
   id: string;
@@ -44,12 +45,15 @@ function LinuxDesktop() {
   const [cpuUsage, setCpuUsage] = useState(0);
   const [memUsage, setMemUsage] = useState(0);
   const [showWidgetMenu, setShowWidgetMenu] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [currentUser, setCurrentUser] = useState('');
   
   const { 
     theme, 
     accentColor, 
     getFontSizeClass, 
     getBackdropBlurClass,
+    getBackgroundGradient,
     transparencyEnabled,
     backgroundType,
     backgroundImage,
@@ -78,6 +82,16 @@ function LinuxDesktop() {
       clearInterval(cpuTimer);
     };
   }, []);
+
+  const handleLogin = (username: string) => {
+    setCurrentUser(username);
+    setIsLoggedIn(true);
+  };
+
+  // 如果未登录，显示登录界面
+  if (!isLoggedIn) {
+    return <LoginScreen onLogin={handleLogin} />;
+  }
 
   // 窗口配置
   const WINDOW_CONFIG: Record<Window['type'], { title: string; width: number; height: number }> = {
@@ -146,22 +160,6 @@ function LinuxDesktop() {
 
   const removeWidget = (id: string) => {
     setWidgets(widgets.filter(w => w.id !== id));
-  };
-
-  // 获取主题背景渐变
-  const getBackgroundGradient = () => {
-    if (theme === 'light') {
-      return 'from-blue-100 via-purple-100 to-pink-100';
-    }
-    const accentGradients: Record<string, string> = {
-      blue: 'from-blue-900 via-indigo-900 to-purple-900',
-      purple: 'from-purple-900 via-violet-900 to-fuchsia-900',
-      pink: 'from-pink-900 via-rose-900 to-red-900',
-      green: 'from-green-900 via-emerald-900 to-teal-900',
-      orange: 'from-orange-900 via-amber-900 to-yellow-900',
-      red: 'from-red-900 via-rose-900 to-pink-900',
-    };
-    return accentGradients[accentColor] || 'from-purple-900 via-blue-900 to-indigo-900';
   };
 
   return (

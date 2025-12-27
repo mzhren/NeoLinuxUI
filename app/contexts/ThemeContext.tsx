@@ -40,6 +40,7 @@ interface ThemeContextType {
   getAccentColorClass: () => string;
   getFontSizeClass: () => string;
   getBackdropBlurClass: () => string;
+  getBackgroundGradient: () => string;
 }
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
@@ -128,6 +129,21 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     return transparencyEnabled ? 'backdrop-blur-xl' : '';
   };
 
+  const getBackgroundGradient = () => {
+    if (theme === 'light') {
+      return 'from-blue-100 via-purple-100 to-pink-100';
+    }
+    const accentGradients: Record<AccentColor, string> = {
+      blue: 'from-blue-900 via-indigo-900 to-purple-900',
+      purple: 'from-purple-900 via-violet-900 to-fuchsia-900',
+      pink: 'from-pink-900 via-rose-900 to-red-900',
+      green: 'from-green-900 via-emerald-900 to-teal-900',
+      orange: 'from-orange-900 via-amber-900 to-yellow-900',
+      red: 'from-red-900 via-rose-900 to-pink-900',
+    };
+    return accentGradients[accentColor] || 'from-purple-900 via-blue-900 to-indigo-900';
+  };
+
   return (
     <ThemeContext.Provider
       value={{
@@ -156,6 +172,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
         getAccentColorClass,
         getFontSizeClass,
         getBackdropBlurClass,
+        getBackgroundGradient,
       }}
     >
       {children}
