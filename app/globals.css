@@ -97,6 +97,35 @@ body {
   animation: glow 2s ease-in-out infinite;
 }
 
+/* Music Player Animations */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin-slow {
+  animation: spin-slow 20s linear infinite;
+}
+
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.02);
+  }
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s ease-in-out infinite;
+}
+
 /* Accent Color Classes */
 .accent-blue .window-content {
   scrollbar-color: rgba(59, 130, 246, 0.5) transparent;

@@ -7,7 +7,7 @@ import ChromeIcon from './icons/ChromeIcon';
 interface Window {
   id: string;
   title: string;
-  type: 'terminal' | 'files' | 'monitor' | 'about' | 'appstore' | 'applist' | 'browser' | 'settings';
+  type: 'terminal' | 'files' | 'monitor' | 'about' | 'appstore' | 'applist' | 'browser' | 'settings' | 'music';
   minimized: boolean;
 }
 
@@ -39,6 +39,7 @@ export default function Dock({ windows, openWindow, restoreWindow }: DockProps) 
     { icon: 'terminal', label: 'Terminal', type: 'terminal' as const },
     { icon: '📁', label: 'Files', type: 'files' as const },
     { icon: 'chrome', label: 'Chrome', type: 'browser' as const },
+    { icon: '🎵', label: 'Music', type: 'music' as const },
     { icon: '📊', label: 'Monitor', type: 'monitor' as const },
     { icon: '🛍️', label: 'App Store', type: 'appstore' as const },
     { icon: '⚙️', label: 'Settings', type: 'settings' as const },
@@ -96,6 +97,7 @@ function getWindowIcon(type: Window['type']): string {
     browser: 'chrome',
     settings: '⚙️',
     about: 'ℹ️',
+    music: '🎵',
   };
   return iconMap[type] || 'ℹ️';
 }

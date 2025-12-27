@@ -12,6 +12,7 @@ import {
   BrowserApp,
   SettingsApp 
 } from './components/apps';
+import MusicPlayerApp from './components/apps/MusicPlayerApp';
 import Dock from './components/Dock';
 import { useTheme } from './contexts/ThemeContext';
 import LoginScreen from './components/LoginScreen';
@@ -19,7 +20,7 @@ import LoginScreen from './components/LoginScreen';
 interface Window {
   id: string;
   title: string;
-  type: 'terminal' | 'files' | 'monitor' | 'about' | 'appstore' | 'applist' | 'browser' | 'settings';
+  type: 'terminal' | 'files' | 'monitor' | 'about' | 'appstore' | 'applist' | 'browser' | 'settings' | 'music';
   x: number;
   y: number;
   width: number;
@@ -103,6 +104,7 @@ function LinuxDesktop() {
     browser: { title: 'Chrome Browser', width: 1000, height: 700 },
     settings: { title: 'Settings', width: 900, height: 600 },
     about: { title: 'About', width: 600, height: 500 },
+    music: { title: 'Music Player', width: 600, height: 700 },
   };
 
   const openWindow = (type: Window['type']) => {
@@ -478,6 +480,7 @@ function DraggableWindow({
         {window.type === 'browser' && <BrowserApp />}
         {window.type === 'settings' && <SettingsApp windowId={window.id} />}
         {window.type === 'about' && <AboutApp />}
+        {window.type === 'music' && <MusicPlayerApp />}
       </div>
 
       {/* Resize Handles - 只在非最大化时显示 */}
