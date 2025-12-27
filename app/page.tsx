@@ -63,6 +63,32 @@ function LinuxDesktop() {
     nightMode 
   } = useTheme();
 
+  // 检查本地存储的登录状态
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const loginData = localStorage.getItem('neolinux-login');
+      if (loginData) {
+        try {
+          const { username, loginTime } = JSON.parse(loginData);
+          const now = new Date().getTime();
+          const oneWeek = 7 * 24 * 60 * 60 * 1000; // 一周的毫秒数
+          
+          // 检查登录时间是否在一周内
+          if (now - loginTime < oneWeek) {
+            setCurrentUser(username);
+            setIsLoggedIn(true);
+          } else {
+            // 超过一周，清除登录状态
+            localStorage.removeItem('neolinux-login');
+          }
+        } catch (e) {
+          console.error('Failed to load login data:', e);
+          localStorage.removeItem('neolinux-login');
+        }
+      }
+    }
+  }, []);
+
   // 初始化默认 widgets（避免 SSR 错误）
   useEffect(() => {
     if (widgets.length === 0 && typeof window !== 'undefined') {
@@ -88,6 +114,15 @@ function LinuxDesktop() {
   const handleLogin = (username: string) => {
     setCurrentUser(username);
     setIsLoggedIn(true);
+    
+    // 保存登录状态到 localStorage，记录登录时间
+    if (typeof window !== 'undefined') {
+      const loginData = {
+        username,
+        loginTime: new Date().getTime()
+      };
+      localStorage.setItem('neolinux-login', JSON.stringify(loginData));
+    }
   };
 
   // 如果未登录，显示登录界面
@@ -261,6 +296,24 @@ function LinuxDesktop() {
           <div className="flex items-center gap-2 px-2 py-1">
             <span>{time.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })}</span>
             <span>{time.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}</span>
+          </div>
+          <div className="relative group">
+            <button className="flex items-center gap-2 hover:bg-white/10 px-2 py-1 rounded transition-colors cursor-pointer">
+              <span className="text-base">👤</span>
+              <span>{currentUser}</span>
+            </button>
+            <div className="absolute top-full right-0 mt-1 bg-black/90 backdrop-blur-xl border border-white/20 rounded-lg shadow-2xl overflow-hidden min-w-[120px] opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+              <button 
+                onClick={() => {
+                  setIsLoggedIn(false);
+                  setCurrentUser('');
+                  localStorage.removeItem('neolinux-login');
+                }}
+                className="w-full text-left px-4 py-2 text-white text-xs hover:bg-white/10 transition-colors flex items-center gap-2"
+              >
+                🚪 注销
+              </button>
+            </div>
           </div>
         </div>
       </div>
