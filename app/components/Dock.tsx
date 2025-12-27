@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import TerminalIcon from './icons/TerminalIcon';
 
 interface Window {
   id: string;
@@ -34,7 +35,7 @@ export default function Dock({ windows, openWindow, restoreWindow }: DockProps) 
   };
 
   const dockApps = [
-    { icon: '💻', label: 'Terminal', type: 'terminal' as const },
+    { icon: 'terminal', label: 'Terminal', type: 'terminal' as const },
     { icon: '📁', label: 'Files', type: 'files' as const },
     { icon: '🌐', label: 'Chrome', type: 'browser' as const },
     { icon: '📊', label: 'Monitor', type: 'monitor' as const },
@@ -86,7 +87,7 @@ export default function Dock({ windows, openWindow, restoreWindow }: DockProps) 
 
 function getWindowIcon(type: Window['type']): string {
   const iconMap: Record<Window['type'], string> = {
-    terminal: '💻',
+    terminal: 'terminal',
     files: '📁',
     monitor: '📊',
     appstore: '🛍️',
@@ -99,7 +100,7 @@ function getWindowIcon(type: Window['type']): string {
 }
 
 interface DockIconProps {
-  icon: string;
+  icon: string | React.ReactNode;
   label: string;
   onClick: () => void;
   minimized?: boolean;
@@ -187,7 +188,11 @@ function DockIcon({
         }}
         title={label}
       >
-        {icon}
+        {icon === 'terminal' ? (
+          <TerminalIcon className="w-8 h-8 text-white" />
+        ) : (
+          <span className="text-3xl">{icon}</span>
+        )}
       </button>
       <div 
         className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-2 py-1 bg-black/90 text-white text-xs rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none"
