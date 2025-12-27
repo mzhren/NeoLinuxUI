@@ -78,7 +78,7 @@ export default function SettingsApp({ windowId }: SettingsAppProps) {
               '选择系统主题颜色',
               <select
                 value={theme}
-                onChange={(e) => setTheme(e.target.value)}
+                onChange={(e) => setTheme(e.target.value as 'dark' | 'light' | 'auto')}
                 className="px-4 py-2 bg-white/10 border border-white/20 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               >
                 <option value="dark">深色</option>
@@ -94,7 +94,7 @@ export default function SettingsApp({ windowId }: SettingsAppProps) {
                 {accentColors.map((ac) => (
                   <button
                     key={ac.name}
-                    onClick={() => setAccentColor(ac.name)}
+                    onClick={() => setAccentColor(ac.name as any)}
                     className={`w-8 h-8 rounded-full ${ac.color} ${
                       accentColor === ac.name ? 'ring-2 ring-white ring-offset-2 ring-offset-black/50' : ''
                     } transition-all hover:scale-110`}
