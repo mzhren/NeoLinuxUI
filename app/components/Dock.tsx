@@ -9,7 +9,7 @@ import VideoIcon from './icons/VideoIcon';
 interface Window {
   id: string;
   title: string;
-  type: 'terminal' | 'files' | 'monitor' | 'about' | 'appstore' | 'applist' | 'browser' | 'settings' | 'music' | 'video';
+  type: 'terminal' | 'files' | 'monitor' | 'about' | 'appstore' | 'applist' | 'browser' | 'settings' | 'music' | 'video' | 'texteditor';
   minimized: boolean;
 }
 
@@ -41,6 +41,7 @@ export default function Dock({ windows, openWindow, restoreWindow }: DockProps) 
     { icon: 'terminal', label: 'Terminal', type: 'terminal' as const },
     { icon: '📁', label: 'Files', type: 'files' as const },
     { icon: 'chrome', label: 'Chrome', type: 'browser' as const },
+    { icon: '📝', label: 'Text Editor', type: 'texteditor' as const },
     { icon: 'music', label: 'Music', type: 'music' as const },
     { icon: 'video', label: 'Video', type: 'video' as const },
     { icon: '📊', label: 'Monitor', type: 'monitor' as const },
@@ -102,6 +103,7 @@ function getWindowIcon(type: Window['type']): string {
     about: 'ℹ️',
     music: 'music',
     video: 'video',
+    texteditor: '📝',
   };
   return iconMap[type] || 'ℹ️';
 }

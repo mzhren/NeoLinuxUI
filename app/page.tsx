@@ -14,6 +14,7 @@ import {
 } from './components/apps';
 import MusicPlayerApp from './components/apps/MusicPlayerApp';
 import VideoPlayerApp from './components/apps/VideoPlayerApp';
+import TextEditorApp from './components/apps/TextEditorApp';
 import Dock from './components/Dock';
 import { useTheme } from './contexts/ThemeContext';
 import LoginScreen from './components/LoginScreen';
@@ -21,7 +22,7 @@ import LoginScreen from './components/LoginScreen';
 interface Window {
   id: string;
   title: string;
-  type: 'terminal' | 'files' | 'monitor' | 'about' | 'appstore' | 'applist' | 'browser' | 'settings' | 'music' | 'video';
+  type: 'terminal' | 'files' | 'monitor' | 'about' | 'appstore' | 'applist' | 'browser' | 'settings' | 'music' | 'video' | 'texteditor';
   x: number;
   y: number;
   width: number;
@@ -142,6 +143,7 @@ function LinuxDesktop() {
     about: { title: 'About', width: 600, height: 500 },
     music: { title: 'Music Player', width: 600, height: 700 },
     video: { title: 'Video Player', width: 900, height: 700 },
+    texteditor: { title: 'Text Editor', width: 800, height: 600 },
   };
 
   const openWindow = (type: Window['type']) => {
@@ -537,6 +539,7 @@ function DraggableWindow({
         {window.type === 'about' && <AboutApp />}
         {window.type === 'music' && <MusicPlayerApp />}
         {window.type === 'video' && <VideoPlayerApp />}
+        {window.type === 'texteditor' && <TextEditorApp />}
       </div>
 
       {/* Resize Handles - 只在非最大化时显示 */}
