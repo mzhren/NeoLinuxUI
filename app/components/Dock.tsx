@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import TerminalIcon from './icons/TerminalIcon';
 import ChromeIcon from './icons/ChromeIcon';
+import MusicIcon from './icons/MusicIcon';
+import VideoIcon from './icons/VideoIcon';
 
 interface Window {
   id: string;
@@ -39,8 +41,8 @@ export default function Dock({ windows, openWindow, restoreWindow }: DockProps) 
     { icon: 'terminal', label: 'Terminal', type: 'terminal' as const },
     { icon: '📁', label: 'Files', type: 'files' as const },
     { icon: 'chrome', label: 'Chrome', type: 'browser' as const },
-    { icon: '🎵', label: 'Music', type: 'music' as const },
-    { icon: '🎥', label: 'Video', type: 'video' as const },
+    { icon: 'music', label: 'Music', type: 'music' as const },
+    { icon: 'video', label: 'Video', type: 'video' as const },
     { icon: '📊', label: 'Monitor', type: 'monitor' as const },
     { icon: '🛍️', label: 'App Store', type: 'appstore' as const },
     { icon: '⚙️', label: 'Settings', type: 'settings' as const },
@@ -98,8 +100,8 @@ function getWindowIcon(type: Window['type']): string {
     browser: 'chrome',
     settings: '⚙️',
     about: 'ℹ️',
-    music: '🎵',
-    video: '🎥',
+    music: 'music',
+    video: 'video',
   };
   return iconMap[type] || 'ℹ️';
 }
@@ -197,6 +199,10 @@ function DockIcon({
           <TerminalIcon className="w-8 h-8 text-white" />
         ) : icon === 'chrome' ? (
           <ChromeIcon className="w-8 h-8" />
+        ) : icon === 'music' ? (
+          <MusicIcon className="w-8 h-8" />
+        ) : icon === 'video' ? (
+          <VideoIcon className="w-8 h-8" />
         ) : (
           <span className="text-3xl">{icon}</span>
         )}
