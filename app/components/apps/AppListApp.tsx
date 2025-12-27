@@ -81,6 +81,16 @@ export default function AppListApp() {
     },
     { 
       id: '8', 
+      name: 'Video Player', 
+      icon: '🎥', 
+      color: 'from-red-500 to-pink-600',
+      category: 'Multimedia',
+      description: 'Watch videos and movies',
+      lastUsed: '3 hours ago',
+      size: '68 MB'
+    },
+    { 
+      id: '9', 
       name: 'Image Viewer', 
       icon: '🖼️', 
       color: 'from-yellow-500 to-orange-500',
@@ -90,7 +100,7 @@ export default function AppListApp() {
       size: '22 MB'
     },
     { 
-      id: '9', 
+      id: '10', 
       name: 'Web Browser', 
       icon: '🌐', 
       color: 'from-cyan-500 to-blue-500',
@@ -100,7 +110,7 @@ export default function AppListApp() {
       size: '120 MB'
     },
     { 
-      id: '10', 
+      id: '11', 
       name: 'Email Client', 
       icon: '📧', 
       color: 'from-blue-600 to-indigo-600',
@@ -110,7 +120,7 @@ export default function AppListApp() {
       size: '65 MB'
     },
     { 
-      id: '11', 
+      id: '12', 
       name: 'Calendar', 
       icon: '📅', 
       color: 'from-red-500 to-pink-500',
