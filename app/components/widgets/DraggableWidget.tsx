@@ -7,10 +7,11 @@ import CalendarWidget from './CalendarWidget';
 import MusicWidget from './MusicWidget';
 import SystemInfoWidget from './SystemInfoWidget';
 import NotesWidget from './NotesWidget';
+import TodoWidget from './TodoWidget';
 
 export interface Widget {
   id: string;
-  type: 'clock' | 'weather' | 'calendar' | 'music' | 'system-info' | 'notes';
+  type: 'clock' | 'weather' | 'calendar' | 'music' | 'system-info' | 'notes' | 'todo';
   x: number;
   y: number;
   width: number;
@@ -26,6 +27,8 @@ interface DraggableWidgetProps {
 export default function DraggableWidget({ widget, onRemove, setWidgets }: DraggableWidgetProps) {
   const [dragging, setDragging] = useState(false);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [resizing, setResizing] = useState<string | null>(null);
+  const [resizeStart, setResizeStart] = useState({ x: 0, y: 0, width: 0, height: 0 });
   const widgetRef = useRef<HTMLDivElement>(null);
 
   const handleMouseDown = (e: React.MouseEvent) => {
@@ -48,6 +51,17 @@ export default function DraggableWidget({ widget, onRemove, setWidgets }: Dragga
     e.stopPropagation();
   };
 
+  const handleResizeStart = (e: React.MouseEvent, direction: string) => {
+    e.stopPropagation();
+    setResizing(direction);
+    setResizeStart({
+      x: e.clientX,
+      y: e.clientY,
+      width: widget.width,
+      height: widget.height
+    });
+  };
+
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
       if (dragging) {
@@ -57,13 +71,49 @@ export default function DraggableWidget({ widget, onRemove, setWidgets }: Dragga
             : w
         ));
       }
+
+      if (resizing) {
+        const deltaX = e.clientX - resizeStart.x;
+        const deltaY = e.clientY - resizeStart.y;
+        
+        setWidgets(prev => prev.map(w => {
+          if (w.id === widget.id) {
+            const updates: Partial<Widget> = {};
+            
+            if (resizing.includes('e')) {
+              updates.width = Math.max(200, resizeStart.width + deltaX);
+            }
+            if (resizing.includes('s')) {
+              updates.height = Math.max(150, resizeStart.height + deltaY);
+            }
+            if (resizing.includes('w')) {
+              const newWidth = Math.max(200, resizeStart.width - deltaX);
+              if (newWidth >= 200) {
+                updates.x = w.x + (resizeStart.width - newWidth);
+                updates.width = newWidth;
+              }
+            }
+            if (resizing.includes('n')) {
+              const newHeight = Math.max(150, resizeStart.height - deltaY);
+              if (newHeight >= 150) {
+                updates.y = w.y + (resizeStart.height - newHeight);
+                updates.height = newHeight;
+              }
+            }
+            
+            return { ...w, ...updates };
+          }
+          return w;
+        }));
+      }
     };
 
     const handleMouseUp = () => {
       setDragging(false);
+      setResizing(null);
     };
 
-    if (dragging) {
+    if (dragging || resizing) {
       document.addEventListener('mousemove', handleMouseMove);
       document.addEventListener('mouseup', handleMouseUp);
       return () => {
@@ -71,7 +121,7 @@ export default function DraggableWidget({ widget, onRemove, setWidgets }: Dragga
         document.removeEventListener('mouseup', handleMouseUp);
       };
     }
-  }, [dragging, dragOffset, widget.id, setWidgets]);
+  }, [dragging, resizing, dragOffset, resizeStart, widget.id, setWidgets]);
 
   const renderWidgetContent = () => {
     switch (widget.type) {
@@ -87,6 +137,8 @@ export default function DraggableWidget({ widget, onRemove, setWidgets }: Dragga
         return <SystemInfoWidget />;
       case 'notes':
         return <NotesWidget />;
+      case 'todo':
+        return <TodoWidget onRemove={onRemove} />;
       default:
         return null;
     }
@@ -127,6 +179,45 @@ export default function DraggableWidget({ widget, onRemove, setWidgets }: Dragga
       <div className="h-full p-4">
         {renderWidgetContent()}
       </div>
+
+      {/* Resize Handles */}
+      <>
+        {/* 四角 */}
+        <div
+          onMouseDown={(e) => handleResizeStart(e, 'nw')}
+          className="absolute top-0 left-0 w-3 h-3 cursor-nw-resize z-10"
+        />
+        <div
+          onMouseDown={(e) => handleResizeStart(e, 'ne')}
+          className="absolute top-0 right-0 w-3 h-3 cursor-ne-resize z-10"
+        />
+        <div
+          onMouseDown={(e) => handleResizeStart(e, 'sw')}
+          className="absolute bottom-0 left-0 w-3 h-3 cursor-sw-resize z-10"
+        />
+        <div
+          onMouseDown={(e) => handleResizeStart(e, 'se')}
+          className="absolute bottom-0 right-0 w-3 h-3 cursor-se-resize z-10"
+        />
+        
+        {/* 四边 */}
+        <div
+          onMouseDown={(e) => handleResizeStart(e, 'n')}
+          className="absolute top-0 left-3 right-3 h-1 cursor-n-resize z-10"
+        />
+        <div
+          onMouseDown={(e) => handleResizeStart(e, 's')}
+          className="absolute bottom-0 left-3 right-3 h-1 cursor-s-resize z-10"
+        />
+        <div
+          onMouseDown={(e) => handleResizeStart(e, 'w')}
+          className="absolute top-3 bottom-3 left-0 w-1 cursor-w-resize z-10"
+        />
+        <div
+          onMouseDown={(e) => handleResizeStart(e, 'e')}
+          className="absolute top-3 bottom-3 right-0 w-1 cursor-e-resize z-10"
+        />
+      </>
     </div>
   );
 }

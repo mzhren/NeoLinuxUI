@@ -199,8 +199,8 @@ function LinuxDesktop() {
       type,
       x: 100 + widgets.length * 20,
       y: 100 + widgets.length * 20,
-      width: type === 'clock' ? 280 : type === 'weather' ? 280 : type === 'calendar' ? 300 : type === 'music' ? 320 : type === 'notes' ? 280 : 260,
-      height: type === 'clock' ? 120 : type === 'weather' ? 160 : type === 'calendar' ? 320 : type === 'music' ? 180 : type === 'notes' ? 200 : 140,
+      width: type === 'clock' ? 280 : type === 'weather' ? 280 : type === 'calendar' ? 300 : type === 'music' ? 320 : type === 'notes' ? 280 : type === 'todo' ? 320 : 260,
+      height: type === 'clock' ? 120 : type === 'weather' ? 160 : type === 'calendar' ? 320 : type === 'music' ? 180 : type === 'notes' ? 200 : type === 'todo' ? 400 : 140,
     };
     setWidgets([...widgets, newWidget]);
     setShowWidgetMenu(false);
@@ -283,6 +283,9 @@ function LinuxDesktop() {
                 </button>
                 <button onClick={() => addWidget('notes')} className="w-full text-left px-4 py-2 text-white text-xs hover:bg-white/10 transition-colors flex items-center gap-2">
                   📝 Notes
+                </button>
+                <button onClick={() => addWidget('todo')} className="w-full text-left px-4 py-2 text-white text-xs hover:bg-white/10 transition-colors flex items-center gap-2">
+                  ✓ Todo
                 </button>
               </div>
             )}
