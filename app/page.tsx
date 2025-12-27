@@ -50,6 +50,12 @@ function LinuxDesktop() {
   const [showWidgetMenu, setShowWidgetMenu] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [currentUser, setCurrentUser] = useState('');
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState([
+    { id: 1, title: '系统更新', message: 'NeoLinux 有可用更新', time: '5分钟前', unread: true, icon: '🔄' },
+    { id: 2, title: '新邮件', message: '您有3封未读邮件', time: '1小时前', unread: true, icon: '📧' },
+    { id: 3, title: '日历提醒', message: '会议将在30分钟后开始', time: '2小时前', unread: false, icon: '📅' },
+  ]);
   
   const { 
     theme, 
@@ -106,11 +112,23 @@ function LinuxDesktop() {
       setCpuUsage(Math.random() * 100);
       setMemUsage(30 + Math.random() * 40);
     }, 2000);
+    
+    // 点击外部关闭通知面板
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (showNotifications && !target.closest('.notification-panel') && !target.closest('.notification-button')) {
+        setShowNotifications(false);
+      }
+    };
+    
+    document.addEventListener('mousedown', handleClickOutside);
+    
     return () => {
       clearInterval(timer);
       clearInterval(cpuTimer);
+      document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, []);
+  }, [showNotifications]);
 
   const handleLogin = (username: string) => {
     setCurrentUser(username);
@@ -298,6 +316,73 @@ function LinuxDesktop() {
           <div className="flex items-center gap-2 px-2 py-1">
             <span>{time.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' })}</span>
             <span>{time.toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' })}</span>
+          </div>
+          <div className="relative">
+            <button 
+              onClick={() => setShowNotifications(!showNotifications)}
+              className="notification-button flex items-center gap-2 hover:bg-white/10 px-2 py-1 rounded transition-colors cursor-pointer relative"
+            >
+              <span className="text-base">🔔</span>
+              {notifications.some(n => n.unread) && (
+                <span className="absolute top-0 right-0 w-2 h-2 bg-red-500 rounded-full"></span>
+              )}
+            </button>
+            {showNotifications && (
+              <div className="notification-panel absolute top-full right-0 mt-1 bg-black/90 backdrop-blur-xl border border-white/20 rounded-lg shadow-2xl overflow-hidden w-80 z-50">
+                <div className="px-4 py-2 border-b border-white/10 flex items-center justify-between">
+                  <span className="font-semibold text-white">通知</span>
+                  <button 
+                    onClick={() => setNotifications(notifications.map(n => ({ ...n, unread: false })))}
+                    className="text-xs text-blue-400 hover:text-blue-300 transition-colors"
+                  >
+                    全部已读
+                  </button>
+                </div>
+                <div className="max-h-96 overflow-y-auto">
+                  {notifications.length === 0 ? (
+                    <div className="px-4 py-8 text-center text-white/50 text-sm">
+                      暂无通知
+                    </div>
+                  ) : (
+                    notifications.map(notification => (
+                      <div 
+                        key={notification.id}
+                        className={`px-4 py-3 hover:bg-white/5 transition-colors cursor-pointer border-b border-white/5 ${
+                          notification.unread ? 'bg-white/5' : ''
+                        }`}
+                        onClick={() => {
+                          setNotifications(notifications.map(n => 
+                            n.id === notification.id ? { ...n, unread: false } : n
+                          ));
+                        }}
+                      >
+                        <div className="flex items-start gap-3">
+                          <span className="text-2xl">{notification.icon}</span>
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2">
+                              <span className="text-white text-sm font-medium">{notification.title}</span>
+                              {notification.unread && (
+                                <span className="w-2 h-2 bg-blue-500 rounded-full"></span>
+                              )}
+                            </div>
+                            <p className="text-white/70 text-xs mt-1">{notification.message}</p>
+                            <span className="text-white/50 text-xs mt-1 block">{notification.time}</span>
+                          </div>
+                        </div>
+                      </div>
+                    ))
+                  )}
+                </div>
+                <div className="px-4 py-2 border-t border-white/10">
+                  <button 
+                    onClick={() => setNotifications([])}
+                    className="w-full text-center text-xs text-white/70 hover:text-white transition-colors py-1"
+                  >
+                    清空所有通知
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
           <div className="relative group">
             <button className="flex items-center gap-2 hover:bg-white/10 px-2 py-1 rounded transition-colors cursor-pointer">
