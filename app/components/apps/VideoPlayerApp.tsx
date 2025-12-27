@@ -10,13 +10,13 @@ export default function VideoPlayerApp() {
   const [duration, setDuration] = useState(0);
   const [volume, setVolume] = useState(0.7);
   const [isMuted, setIsMuted] = useState(false);
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [isFullscreen] = useState(false);
   const [showControls, setShowControls] = useState(true);
   const [currentVideo, setCurrentVideo] = useState(0);
   const [playbackRate, setPlaybackRate] = useState(1);
   const videoRef = useRef<HTMLVideoElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
-  const controlsTimeoutRef = useRef<NodeJS.Timeout>();
+  const controlsTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   // 示例视频列表 - 使用免费的视频文件
   const playlist = [
