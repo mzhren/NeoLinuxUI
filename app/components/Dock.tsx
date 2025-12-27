@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import TerminalIcon from './icons/TerminalIcon';
+import ChromeIcon from './icons/ChromeIcon';
 
 interface Window {
   id: string;
@@ -37,7 +38,7 @@ export default function Dock({ windows, openWindow, restoreWindow }: DockProps) 
   const dockApps = [
     { icon: 'terminal', label: 'Terminal', type: 'terminal' as const },
     { icon: '📁', label: 'Files', type: 'files' as const },
-    { icon: '🌐', label: 'Chrome', type: 'browser' as const },
+    { icon: 'chrome', label: 'Chrome', type: 'browser' as const },
     { icon: '📊', label: 'Monitor', type: 'monitor' as const },
     { icon: '🛍️', label: 'App Store', type: 'appstore' as const },
     { icon: '⚙️', label: 'Settings', type: 'settings' as const },
@@ -92,7 +93,7 @@ function getWindowIcon(type: Window['type']): string {
     monitor: '📊',
     appstore: '🛍️',
     applist: '📱',
-    browser: '🌐',
+    browser: 'chrome',
     settings: '⚙️',
     about: 'ℹ️',
   };
@@ -190,6 +191,8 @@ function DockIcon({
       >
         {icon === 'terminal' ? (
           <TerminalIcon className="w-8 h-8 text-white" />
+        ) : icon === 'chrome' ? (
+          <ChromeIcon className="w-8 h-8" />
         ) : (
           <span className="text-3xl">{icon}</span>
         )}
