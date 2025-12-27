@@ -320,7 +320,7 @@ function LinuxDesktop() {
 
       {/* Desktop Icons */}
       <div className="absolute top-12 left-4 flex flex-col gap-4 z-10">
-        <DesktopIcon icon="📁" label="Home" onClick={() => openWindow('files')} />
+        <DesktopIcon icon="🏠" label="Home" onClick={() => openWindow('files')} />
         <DesktopIcon icon="🗂️" label="Documents" onClick={() => openWindow('files')} />
         <DesktopIcon icon="🖼️" label="Pictures" onClick={() => openWindow('files')} />
         <DesktopIcon icon="⚙️" label="Settings" onClick={() => openWindow('settings')} />
