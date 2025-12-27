@@ -99,9 +99,10 @@ function LinuxDesktop() {
   // 初始化默认 widgets（避免 SSR 错误）
   useEffect(() => {
     if (widgets.length === 0 && typeof window !== 'undefined') {
+      const centerX = (window.innerWidth - 800) / 2;
+      const centerY = (window.innerHeight - 400) / 2;
       setWidgets([
-        { id: '1', type: 'clock', x: window.innerWidth - 320, y: 50, width: 280, height: 120 },
-        { id: '2', type: 'weather', x: window.innerWidth - 320, y: 190, width: 280, height: 160 },
+        { id: '1', type: 'flipclock', x: centerX, y: centerY, width: 800, height: 400 },
       ]);
     }
   }, []);
@@ -199,8 +200,8 @@ function LinuxDesktop() {
       type,
       x: 100 + widgets.length * 20,
       y: 100 + widgets.length * 20,
-      width: type === 'clock' ? 280 : type === 'weather' ? 280 : type === 'calendar' ? 300 : type === 'music' ? 320 : type === 'notes' ? 280 : type === 'todo' ? 320 : 260,
-      height: type === 'clock' ? 120 : type === 'weather' ? 160 : type === 'calendar' ? 320 : type === 'music' ? 180 : type === 'notes' ? 200 : type === 'todo' ? 400 : 140,
+      width: type === 'clock' ? 280 : type === 'weather' ? 280 : type === 'calendar' ? 300 : type === 'music' ? 320 : type === 'notes' ? 280 : type === 'todo' ? 320 : type === 'flipclock' ? 800 : 260,
+      height: type === 'clock' ? 120 : type === 'weather' ? 160 : type === 'calendar' ? 320 : type === 'music' ? 180 : type === 'notes' ? 200 : type === 'todo' ? 400 : type === 'flipclock' ? 400 : 140,
     };
     setWidgets([...widgets, newWidget]);
     setShowWidgetMenu(false);
@@ -266,6 +267,9 @@ function LinuxDesktop() {
             </button>
             {showWidgetMenu && (
               <div className={`absolute top-full left-0 mt-1 bg-black/90 ${getBackdropBlurClass()} border border-white/20 rounded-lg shadow-2xl overflow-hidden min-w-[160px] z-[10000] transition-all duration-300`}>
+                <button onClick={() => addWidget('flipclock')} className="w-full text-left px-4 py-2 text-white text-xs hover:bg-white/10 transition-colors flex items-center gap-2">
+                  🕙 Flip Clock
+                </button>
                 <button onClick={() => addWidget('clock')} className="w-full text-left px-4 py-2 text-white text-xs hover:bg-white/10 transition-colors flex items-center gap-2">
                   🕐 Clock
                 </button>

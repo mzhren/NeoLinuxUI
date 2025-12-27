@@ -8,10 +8,11 @@ import MusicWidget from './MusicWidget';
 import SystemInfoWidget from './SystemInfoWidget';
 import NotesWidget from './NotesWidget';
 import TodoWidget from './TodoWidget';
+import FlipClockWidget from './FlipClockWidget';
 
 export interface Widget {
   id: string;
-  type: 'clock' | 'weather' | 'calendar' | 'music' | 'system-info' | 'notes' | 'todo';
+  type: 'clock' | 'weather' | 'calendar' | 'music' | 'system-info' | 'notes' | 'todo' | 'flipclock';
   x: number;
   y: number;
   width: number;
@@ -139,6 +140,8 @@ export default function DraggableWidget({ widget, onRemove, setWidgets }: Dragga
         return <NotesWidget />;
       case 'todo':
         return <TodoWidget onRemove={onRemove} />;
+      case 'flipclock':
+        return <FlipClockWidget />;
       default:
         return null;
     }
