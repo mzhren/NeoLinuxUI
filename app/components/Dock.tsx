@@ -7,11 +7,12 @@ import MusicIcon from './icons/MusicIcon';
 import VideoIcon from './icons/VideoIcon';
 import AppStoreIcon from './icons/AppStoreIcon';
 import MonitorIcon from './icons/MonitorIcon';
+import PaintIcon from './icons/PaintIcon';
 
 interface Window {
   id: string;
   title: string;
-  type: 'terminal' | 'files' | 'monitor' | 'about' | 'appstore' | 'applist' | 'browser' | 'settings' | 'music' | 'video' | 'texteditor';
+  type: 'terminal' | 'files' | 'monitor' | 'about' | 'appstore' | 'applist' | 'browser' | 'settings' | 'music' | 'video' | 'texteditor' | 'paint';
   minimized: boolean;
 }
 
@@ -44,6 +45,7 @@ export default function Dock({ windows, openWindow, restoreWindow }: DockProps) 
     { icon: '📁', label: 'Files', type: 'files' as const },
     { icon: 'chrome', label: 'Chrome', type: 'browser' as const },
     { icon: '📝', label: 'Text Editor', type: 'texteditor' as const },
+    { icon: 'paint', label: 'Paint', type: 'paint' as const },
     { icon: 'music', label: 'Music', type: 'music' as const },
     { icon: 'video', label: 'Video', type: 'video' as const },
     { icon: 'monitor', label: 'Monitor', type: 'monitor' as const },
@@ -106,6 +108,7 @@ function getWindowIcon(type: Window['type']): string {
     music: 'music',
     video: 'video',
     texteditor: '📝',
+    paint: 'paint',
   };
   return iconMap[type] || 'ℹ️';
 }
@@ -211,6 +214,8 @@ function DockIcon({
           <AppStoreIcon className="w-8 h-8" />
         ) : icon === 'monitor' ? (
           <MonitorIcon className="w-8 h-8" />
+        ) : icon === 'paint' ? (
+          <PaintIcon className="w-8 h-8" />
         ) : (
           <span className="text-3xl">{icon}</span>
         )}
