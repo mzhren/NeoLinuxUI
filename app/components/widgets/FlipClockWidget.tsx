@@ -20,7 +20,7 @@ export default function FlipClockWidget() {
             theme: theme({
               dividers: ':',
               css: css({
-                fontSize: '5rem'
+                fontSize: '5rem',
               })
             })
           });

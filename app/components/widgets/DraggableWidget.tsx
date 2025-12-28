@@ -17,6 +17,7 @@ export interface Widget {
   y: number;
   width: number;
   height: number;
+  opacity?: number; // 背景透明度 0-1
 }
 
 interface DraggableWidgetProps {
@@ -150,12 +151,13 @@ export default function DraggableWidget({ widget, onRemove, setWidgets }: Dragga
   return (
     <div
       ref={widgetRef}
-      className="absolute bg-black/40 backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/20 overflow-hidden group cursor-move"
+      className="absolute backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/20 overflow-hidden group cursor-move"
       style={{ 
         top: widget.y, 
         left: widget.x, 
         width: widget.width, 
         height: widget.height,
+        backgroundColor: `rgba(0, 0, 0, ${widget.opacity ?? 0.4})`,
         zIndex: 500
       }}
       onMouseDown={handleMouseDown}

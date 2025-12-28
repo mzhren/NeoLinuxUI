@@ -102,7 +102,7 @@ function LinuxDesktop() {
       const centerX = (window.innerWidth - 800) / 2;
       const centerY = (window.innerHeight - 400) / 2;
       setWidgets([
-        { id: '1', type: 'flipclock', x: centerX, y: centerY, width: 800, height: 400 },
+        { id: '1', type: 'flipclock', x: centerX, y: centerY, width: 800, height: 400, opacity: 0.1 },
       ]);
     }
   }, []);
@@ -202,6 +202,7 @@ function LinuxDesktop() {
       y: 100 + widgets.length * 20,
       width: type === 'clock' ? 280 : type === 'weather' ? 280 : type === 'calendar' ? 300 : type === 'music' ? 320 : type === 'notes' ? 280 : type === 'todo' ? 320 : type === 'flipclock' ? 800 : 260,
       height: type === 'clock' ? 120 : type === 'weather' ? 160 : type === 'calendar' ? 320 : type === 'music' ? 180 : type === 'notes' ? 200 : type === 'todo' ? 400 : type === 'flipclock' ? 400 : 140,
+      opacity: type === 'flipclock' ? 0.9 : 0.4, // flipclock默认90%透明度,其他40%
     };
     setWidgets([...widgets, newWidget]);
     setShowWidgetMenu(false);
