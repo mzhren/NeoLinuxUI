@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iOS 18 Weather Cards</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px 20px;
+        }
+
+        .container {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            align-items: stretch;
+            flex-wrap: wrap;
+            max-width: 1400px;
+        }
+
+        .weather-card {
+            width: 280px;
+            min-height: 380px;
+            border-radius: 32px;
+            backdrop-filter: blur(20px) saturate(180%);
+            background: rgba(255, 255, 255, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            padding: 28px;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .weather-card:hover {
+            transform: translateY(-10px) scale(1.02);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+        }
+
+        .weather-card.active {
+            transform: scale(1.05);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            z-index: 2;
+        }
+
+        .location {
+            color: white;
+            font-size: 22px;
+            font-weight: 600;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .time {
+            color: rgba(255, 255, 255, 0.7);
+            font-size: 13px;
+            margin-top: 4px;
+        }
+
+        .temperature {
+            color: white;
+            font-size: 68px;
+            font-weight: 200;
+            text-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+            letter-spacing: -2px;
+            line-height: 1;
+            margin: 20px 0;
+        }
+
+        .condition {
+            color: white;
+            font-size: 18px;
+            font-weight: 500;
+            opacity: 0.95;
+        }
+
+        .extra-info {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .info-item {
+            color: rgba(255, 255, 255, 0.85);
+            font-size: 13px;
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: white;
+            font-size: 14px;
+            margin-top: 2px;
+        }
+
+        /* 天气图标容器 */
+        .weather-icon {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -60%);
+            width: 120px;
+            height: 120px;
+            z-index: 1;
+            opacity: 0.9;
+        }
+
+        /* 晴天样式 */
+        .sunny {
+            background: linear-gradient(135deg, rgba(255, 200, 100, 0.3) 0%, rgba(255, 150, 50, 0.2) 100%);
+        }
+
+        .sun {
+            position: absolute;
+            width: 70px;
+            height: 70px;
+            background: radial-gradient(circle, #ffdd44 0%, #ff9900 70%, #ff6600 100%);
+            border-radius: 50%;
+            box-shadow: 0 0 60px rgba(255, 200, 0, 0.8),
+                        0 0 100px rgba(255, 150, 0, 0.6);
+            animation: sunPulse 3s ease-in-out infinite;
+        }
+
+        .sun::before {
+            content: '';
+            position: absolute;
+            top: -30px;
+            left: -30px;
+            right: -30px;
+            bottom: -30px;
+            border: 2px dashed rgba(255, 200, 0, 0.4);
+            border-radius: 50%;
+            animation: sunRotate 20s linear infinite;
+        }
+
+        .sun-rays {
+            position: absolute;
+            width: 120px;
+            height: 120px;
+            animation: sunRotate 30s linear infinite reverse;
+        }
+
+        .ray {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 60px;
+            height: 4px;
+            background: linear-gradient(90deg, rgba(255, 200, 0, 0.8) 0%, transparent 100%);
+            transform-origin: left center;
+            border-radius: 2px;
+        }
+
+        @keyframes sunPulse {
+            0%, 100% {
+                transform: scale(1);
+                box-shadow: 0 0 60px rgba(255, 200, 0, 0.8),
+                            0 0 100px rgba(255, 150, 0, 0.6);
+            }
+            50% {
+                transform: scale(1.08);
+                box-shadow: 0 0 80px rgba(255, 200, 0, 1),
+                            0 0 130px rgba(255, 150, 0, 0.8);
+            }
+        }
+
+        @keyframes sunRotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        /* 大风样式 */
+        .windy {
+            background: linear-gradient(135deg, rgba(100, 150, 200, 0.3) 0%, rgba(150, 100, 200, 0.2) 100%);
+        }
+
+        .cloud {
+            position: absolute;
+            width: 60px;
+            height: 25px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 20px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .cloud::before {
+            content: '';
+            position: absolute;
+            width: 35px;
+            height: 35px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            top: -18px;
+            left: 10px;
+        }
+
+        .cloud::after {
+            content: '';
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 50%;
+            top: -12px;
+            left: 35px;
+        }
+
+        .cloud-1 {
+            top: 35%;
+            left: 25%;
+            animation: cloudFloat 4s ease-in-out infinite;
+        }
+
+        .cloud-2 {
+            top: 45%;
+            left: 55%;
+            animation: cloudFloat 5s ease-in-out infinite 0.5s;
+            transform: scale(0.8);
+        }
+
+        .wind-line {
+            position: absolute;
+            height: 3px;
+            background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.7) 50%, transparent 100%);
+            border-radius: 2px;
+            animation: windBlow 2s ease-in-out infinite;
+        }
+
+        .wind-line-1 { top: 55%; left: 15%; width: 80px; }
+        .wind-line-2 { top: 62%; left: 20%; width: 100px; animation-delay: 0.3s; }
+        .wind-line-3 { top: 69%; left: 10%; width: 90px; animation-delay: 0.6s; }
+
+        @keyframes cloudFloat {
+            0%, 100% { transform: translateX(0) translateY(0); }
+            25% { transform: translateX(5px) translateY(-3px); }
+            50% { transform: translateX(10px) translateY(0); }
+            75% { transform: translateX(5px) translateY(3px); }
+        }
+
+        @keyframes windBlow {
+            0% { opacity: 0; transform: translateX(-20px); }
+            50% { opacity: 1; }
+            100% { opacity: 0; transform: translateX(40px); }
+        }
+
+        /* 暴雨样式 */
+        .rainy {
+            background: linear-gradient(135deg, rgba(80, 100, 150, 0.4) 0%, rgba(60, 80, 130, 0.3) 100%);
+        }
+
+        .rain-cloud {
+            position: absolute;
+            top: 30%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .rain-cloud .cloud {
+            background: linear-gradient(180deg, #8B9DB8 0%, #6B7B96 100%);
+            width: 90px;
+        }
+
+        .rain-cloud .cloud::before,
+        .rain-cloud .cloud::after {
+            background: linear-gradient(180deg, #9AACBF 0%, #7A8BA6 100%);
+        }
+
+        .rain-drop {
+            position: absolute;
+            width: 3px;
+            height: 15px;
+            background: linear-gradient(180deg, rgba(174, 194, 224, 0.9) 0%, rgba(174, 194, 224, 0.3) 100%);
+            border-radius: 0 0 3px 3px;
+            animation: rainFall 0.8s linear infinite;
+        }
+
+        .rain-drop-1 { left: 35%; animation-delay: 0s; }
+        .rain-drop-2 { left: 45%; animation-delay: 0.15s; }
+        .rain-drop-3 { left: 55%; animation-delay: 0.3s; }
+        .rain-drop-4 { left: 40%; animation-delay: 0.45s; height: 18px; }
+        .rain-drop-5 { left: 50%; animation-delay: 0.6s; height: 12px; }
+        .rain-drop-6 { left: 60%; animation-delay: 0.2s; }
+
+        @keyframes rainFall {
+            0% {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% {
+                transform: translateY(80px);
+                opacity: 0;
+            }
+        }
+
+        /* 暴雪样式 */
+        .snowy {
+            background: linear-gradient(135deg, rgba(200, 220, 255, 0.4) 0%, rgba(160, 180, 220, 0.3) 100%);
+        }
+
+        .snow-cloud {
+            position: absolute;
+            top: 28%;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .snow-cloud .cloud {
+            background: linear-gradient(180deg, #D4E5F7 0%, #B8D0EB 100%);
+        }
+
+        .snow-cloud .cloud::before,
+        .snow-cloud .cloud::after {
+            background: linear-gradient(180deg, #E8F4FC 0%, #D4E5F7 100%);
+        }
+
+        .snowflake {
+            position: absolute;
+            color: white;
+            font-size: 16px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+            animation: snowFall 3s linear infinite;
+        }
+
+        .snowflake-1 { left: 30%; animation-delay: 0s; font-size: 14px; }
+        .snowflake-2 { left: 45%; animation-delay: 0.5s; font-size: 18px; }
+        .snowflake-3 { left: 60%; animation-delay: 1s; font-size: 12px; }
+        .snowflake-4 { left: 35%; animation-delay: 1.5s; font-size: 16px; }
+        .snowflake-5 { left: 50%; animation-delay: 2s; font-size: 14px; }
+        .snowflake-6 { left: 55%; animation-delay: 0.8s; font-size: 17px; }
+
+        @keyframes snowFall {
+            0% {
+                transform: translateY(20px) rotate(0deg);
+                opacity: 0;
+            }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% {
+                transform: translateY(100px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+
+        /* 详情面板 */
+        .detail-panel {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-out, opacity 0.3s ease;
+            opacity: 0;
+        }
+
+        .detail-panel.show {
+            max-height: 150px;
+            opacity: 1;
+            margin-top: 10px;
+        }
+
+        .detail-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            font-size: 13px;
+        }
+
+        .detail-row:last-child {
+            border-bottom: none;
+        }
+
+        .detail-label {
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .detail-value {
+            color: white;
+            font-weight: 500;
+        }
+
+        /* 响应式设计 */
+        @media (max-width: 1200px) {
+            .container {
+                max-width: 600px;
+            }
+            .weather-card {
+                width: 280px;
+            }
+        }
+
+        @media (max-width: 640px) {
+            body {
+                padding: 20px 10px;
+            }
+            .container {
+                flex-direction: column;
+                align-items: center;
+            }
+            .weather-card {
+                width: 100%;
+                max-width: 320px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 晴天卡片 -->
+        <div class="weather-card sunny" onclick="toggleDetail(this)">
+            <div class="weather-icon">
+                <div class="sun"></div>
+                <div class="sun-rays">
+                    <div class="ray" style="transform: rotate(0deg);"></div>
+                    <div class="ray" style="transform: rotate(45deg);"></div>
+                    <div class="ray" style="transform: rotate(90deg);"></div>
+                    <div class="ray" style="transform: rotate(135deg);"></div>
+                    <div class="ray" style="transform: rotate(180deg);"></div>
+                    <div class="ray" style="transform: rotate(225deg);"></div>
+                    <div class="ray" style="transform: rotate(270deg);"></div>
+                    <div class="ray" style="transform: rotate(315deg);"></div>
+                </div>
+            </div>
+            <div class="card-header">
+                <div>
+                    <div class="location">北京</div>
+                    <div class="time">12:30</div>
+                </div>
+            </div>
+            <div style="z-index: 2;">
+                <div class="temperature">28°</div>
+                <div class="condition">晴天</div>
+            </div>
+            <div class="extra-info">
+                <div class="info-item">
+                    <div class="info-value">35%</div>
+                    <div>湿度</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-value">12 km/h</div>
+                    <div>风速</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-value">1012 hPa</div>
+                    <div>气压</div>
+                </div>
+            </div>
+            <div class="detail-panel">
+                <div class="detail-row">
+                    <span class="detail-label">紫外线指数</span>
+                    <span class="detail-value">8 (很强)</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">体感温度</span>
+                    <span class="detail-value">30°</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">日出日落</span>
+                    <span class="detail-value">06:15 - 18:45</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 大风卡片 -->
+        <div class="weather-card windy" onclick="toggleDetail(this)">
+            <div class="weather-icon">
+                <div class="cloud cloud-1"></div>
+                <div class="cloud cloud-2"></div>
+                <div class="wind-line wind-line-1"></div>
+                <div class="wind-line wind-line-2"></div>
+                <div class="wind-line wind-line-3"></div>
+            </div>
+            <div class="card-header">
+                <div>
+                    <div class="location">上海</div>
+                    <div class="time">12:30</div>
+                </div>
+            </div>
+            <div style="z-index: 2;">
+                <div class="temperature">22°</div>
+                <div class="condition">大风</div>
+            </div>
+            <div class="extra-info">
+                <div class="info-item">
+                    <div class="info-value">55%</div>
+                    <div>湿度</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-value">38 km/h</div>
+                    <div>风速</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-value">1008 hPa</div>
+                    <div>气压</div>
+                </div>
+            </div>
+            <div class="detail-panel">
+                <div class="detail-row">
+                    <span class="detail-label">风向</span>
+                    <span class="detail-value">西北风</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">阵风</span>
+                    <span class="detail-value">55 km/h</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">能见度</span>
+                    <span class="detail-value">15 km</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 暴雨卡片 -->
+        <div class="weather-card rainy" onclick="toggleDetail(this)">
+            <div class="weather-icon rain-cloud">
+                <div class="cloud"></div>
+                <div class="rain-drop rain-drop-1"></div>
+                <div class="rain-drop rain-drop-2"></div>
+                <div class="rain-drop rain-drop-3"></div>
+                <div class="rain-drop rain-drop-4"></div>
+                <div class="rain-drop rain-drop-5"></div>
+                <div class="rain-drop rain-drop-6"></div>
+            </div>
+            <div class="card-header">
+                <div>
+                    <div class="location">广州</div>
+                    <div class="time">12:30</div>
+                </div>
+            </div>
+            <div style="z-index: 2;">
+                <div class="temperature">24°</div>
+                <div class="condition">暴雨</div>
+            </div>
+            <div class="extra-info">
+                <div class="info-item">
+                    <div class="info-value">95%</div>
+                    <div>湿度</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-value">18 km/h</div>
+                    <div>风速</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-value">1005 hPa</div>
+                    <div>气压</div>
+                </div>
+            </div>
+            <div class="detail-panel">
+                <div class="detail-row">
+                    <span class="detail-label">降雨量</span>
+                    <span class="detail-value">45 mm/h</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">降水概率</span>
+                    <span class="detail-value">98%</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">能见度</span>
+                    <span class="detail-value">3 km</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- 暴雪卡片 -->
+        <div class="weather-card snowy" onclick="toggleDetail(this)">
+            <div class="weather-icon snow-cloud">
+                <div class="cloud"></div>
+                <div class="snowflake snowflake-1">❄</div>
+                <div class="snowflake snowflake-2">❄</div>
+                <div class="snowflake snowflake-3">❄</div>
+                <div class="snowflake snowflake-4">❄</div>
+                <div class="snowflake snowflake-5">❄</div>
+                <div class="snowflake snowflake-6">❄</div>
+            </div>
+            <div class="card-header">
+                <div>
+                    <div class="location">哈尔滨</div>
+                    <div class="time">12:30</div>
+                </div>
+            </div>
+            <div style="z-index: 2;">
+                <div class="temperature">-15°</div>
+                <div class="condition">暴雪</div>
+            </div>
+            <div class="extra-info">
+                <div class="info-item">
+                    <div class="info-value">75%</div>
+                    <div>湿度</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-value">22 km/h</div>
+                    <div>风速</div>
+                </div>
+                <div class="info-item">
+                    <div class="info-value">1018 hPa</div>
+                    <div>气压</div>
+                </div>
+            </div>
+            <div class="detail-panel">
+                <div class="detail-row">
+                    <span class="detail-label">降雪量</span>
+                    <span class="detail-value">20 mm</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">体感温度</span>
+                    <span class="detail-value">-23°</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">能见度</span>
+                    <span class="detail-value">500 m</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 点击卡片切换详情显示
+        function toggleDetail(card) {
+            // 关闭其他卡片的详情
+            document.querySelectorAll('.weather-card').forEach(c => {
+                if (c !== card) {
+                    c.classList.remove('active');
+                    c.querySelector('.detail-panel').classList.remove('show');
+                }
+            });
+
+            // 切换当前卡片状态
+            card.classList.toggle('active');
+            card.querySelector('.detail-panel').classList.toggle('show');
+        }
+
+        // 添加时间更新功能
+        function updateTime() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const timeString = `${hours}:${minutes}`;
+
+            document.querySelectorAll('.time').forEach(timeEl => {
+                timeEl.textContent = timeString;
+            });
+        }
+
+        // 每分钟更新时间
+        setInterval(updateTime, 60000);
+        updateTime();
+
+        // 添加鼠标移动视差效果
+        document.querySelectorAll('.weather-card').forEach(card => {
+            card.addEventListener('mousemove', (e) => {
+                const rect = card.getBoundingClientRect();
+                const x = e.clientX - rect.left;
+                const y = e.clientY - rect.top;
+
+                const centerX = rect.width / 2;
+                const centerY = rect.height / 2;
+
+                const rotateX = (y - centerY) / 20;
+                const rotateY = (centerX - x) / 20;
+
+                card.style.transform = `perspective(1000px) rotateX(${rotateX}deg) rotateY(${rotateY}deg) translateY(-10px) scale(1.02)`;
+            });
+
+            card.addEventListener('mouseleave', () => {
+                card.style.transform = 'perspective(1000px) rotateX(0) rotateY(0) translateY(0) scale(1)';
+            });
+        });
+    </script>
+</body>
+</html>
