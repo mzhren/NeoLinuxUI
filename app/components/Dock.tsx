@@ -5,6 +5,8 @@ import TerminalIcon from './icons/TerminalIcon';
 import ChromeIcon from './icons/ChromeIcon';
 import MusicIcon from './icons/MusicIcon';
 import VideoIcon from './icons/VideoIcon';
+import AppStoreIcon from './icons/AppStoreIcon';
+import MonitorIcon from './icons/MonitorIcon';
 
 interface Window {
   id: string;
@@ -44,8 +46,8 @@ export default function Dock({ windows, openWindow, restoreWindow }: DockProps) 
     { icon: '📝', label: 'Text Editor', type: 'texteditor' as const },
     { icon: 'music', label: 'Music', type: 'music' as const },
     { icon: 'video', label: 'Video', type: 'video' as const },
-    { icon: '📊', label: 'Monitor', type: 'monitor' as const },
-    { icon: '🛍️', label: 'App Store', type: 'appstore' as const },
+    { icon: 'monitor', label: 'Monitor', type: 'monitor' as const },
+    { icon: 'appstore', label: 'App Store', type: 'appstore' as const },
     { icon: '⚙️', label: 'Settings', type: 'settings' as const },
     { icon: 'ℹ️', label: 'About', type: 'about' as const },
   ];
@@ -95,8 +97,8 @@ function getWindowIcon(type: Window['type']): string {
   const iconMap: Record<Window['type'], string> = {
     terminal: 'terminal',
     files: '📁',
-    monitor: '📊',
-    appstore: '🛍️',
+    monitor: 'monitor',
+    appstore: 'appstore',
     applist: '📱',
     browser: 'chrome',
     settings: '⚙️',
@@ -205,6 +207,10 @@ function DockIcon({
           <MusicIcon className="w-8 h-8" />
         ) : icon === 'video' ? (
           <VideoIcon className="w-8 h-8" />
+        ) : icon === 'appstore' ? (
+          <AppStoreIcon className="w-8 h-8" />
+        ) : icon === 'monitor' ? (
+          <MonitorIcon className="w-8 h-8" />
         ) : (
           <span className="text-3xl">{icon}</span>
         )}
