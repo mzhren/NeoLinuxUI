@@ -19,6 +19,7 @@ export interface Widget {
   height: number;
   opacity?: number; // 背景透明度 0-1
   initialCity?: string; // weather widget 的初始城市
+  zIndex: number; // 层级
 }
 
 interface DraggableWidgetProps {
@@ -45,6 +46,14 @@ export default function DraggableWidget({ widget, onRemove, setWidgets }: Dragga
     ) {
       return;
     }
+
+    // 提升当前 widget 的 zIndex
+    const maxZ = Math.max(...Array.from(document.querySelectorAll('[data-widget-id]')).map(
+      el => parseInt((el as HTMLElement).style.zIndex || '0')
+    ));
+    setWidgets(prev => prev.map(w => 
+      w.id === widget.id ? { ...w, zIndex: maxZ + 1 } : w
+    ));
 
     setDragging(true);
     setDragOffset({
@@ -155,6 +164,7 @@ export default function DraggableWidget({ widget, onRemove, setWidgets }: Dragga
   return (
     <div
       ref={widgetRef}
+      data-widget-id={widget.id}
       className="absolute backdrop-blur-2xl rounded-2xl shadow-2xl border border-white/20 overflow-hidden group cursor-move"
       style={{ 
         top: widget.y, 
@@ -162,7 +172,7 @@ export default function DraggableWidget({ widget, onRemove, setWidgets }: Dragga
         width: widget.width, 
         height: widget.height,
         backgroundColor: `rgba(0, 0, 0, ${widget.opacity ?? 0.4})`,
-        zIndex: 500
+        zIndex: widget.zIndex
       }}
       onMouseDown={handleMouseDown}
     >

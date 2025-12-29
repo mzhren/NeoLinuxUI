@@ -108,8 +108,8 @@ function LinuxDesktop() {
       const weatherY = 50;
       
       setWidgets([
-        { id: '1', type: 'flipclock', x: centerX, y: centerY, width: 800, height: 400, opacity: 0.1 },
-        { id: '2', type: 'weather', x: weatherX, y: weatherY, width: 240, height: 320, opacity: 0.4, initialCity: '广州' },
+        { id: '1', type: 'flipclock', x: centerX, y: centerY, width: 800, height: 400, opacity: 0.1, zIndex: 500 },
+        { id: '2', type: 'weather', x: weatherX, y: weatherY, width: 240, height: 320, opacity: 0.4, initialCity: '广州', zIndex: 501 },
       ]);
     }
   }, []);
@@ -211,8 +211,10 @@ function LinuxDesktop() {
       width: type === 'clock' ? 280 : type === 'weather' ? 240 : type === 'calendar' ? 300 : type === 'music' ? 320 : type === 'notes' ? 280 : type === 'todo' ? 320 : type === 'flipclock' ? 800 : 260,
       height: type === 'clock' ? 120 : type === 'weather' ? 340 : type === 'calendar' ? 320 : type === 'music' ? 180 : type === 'notes' ? 200 : type === 'todo' ? 400 : type === 'flipclock' ? 400 : 140,
       opacity: type === 'flipclock' ? 0.9 : 0.4, // flipclock默认90%透明度,其他40%
+      zIndex: nextZIndex,
     };
     setWidgets([...widgets, newWidget]);
+    setNextZIndex(nextZIndex + 1);
     setShowWidgetMenu(false);
   };
 
