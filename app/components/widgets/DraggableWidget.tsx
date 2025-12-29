@@ -82,11 +82,14 @@ export default function DraggableWidget({ widget, onRemove, setWidgets }: Dragga
           if (w.id === widget.id) {
             const updates: Partial<Widget> = {};
             
+            // weather widget 的最小高度为 220px，其他为 150px
+            const minHeight = w.type === 'weather' ? 220 : 150;
+            
             if (resizing.includes('e')) {
               updates.width = Math.max(200, resizeStart.width + deltaX);
             }
             if (resizing.includes('s')) {
-              updates.height = Math.max(150, resizeStart.height + deltaY);
+              updates.height = Math.max(minHeight, resizeStart.height + deltaY);
             }
             if (resizing.includes('w')) {
               const newWidth = Math.max(200, resizeStart.width - deltaX);
@@ -96,8 +99,8 @@ export default function DraggableWidget({ widget, onRemove, setWidgets }: Dragga
               }
             }
             if (resizing.includes('n')) {
-              const newHeight = Math.max(150, resizeStart.height - deltaY);
-              if (newHeight >= 150) {
+              const newHeight = Math.max(minHeight, resizeStart.height - deltaY);
+              if (newHeight >= minHeight) {
                 updates.y = w.y + (resizeStart.height - newHeight);
                 updates.height = newHeight;
               }

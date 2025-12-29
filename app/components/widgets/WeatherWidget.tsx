@@ -24,6 +24,7 @@ export default function WeatherWidget() {
   const [currentCityIndex, setCurrentCityIndex] = useState(0);
   const [time, setTime] = useState(new Date());
   const [showDetail, setShowDetail] = useState(false);
+  const [showCitySelector, setShowCitySelector] = useState(false);
 
   const weather = cities[currentCityIndex];
 
@@ -32,8 +33,9 @@ export default function WeatherWidget() {
     return () => clearInterval(timer);
   }, []);
 
-  const switchCity = () => {
-    setCurrentCityIndex((prev) => (prev + 1) % cities.length);
+  const selectCity = (index: number) => {
+    setCurrentCityIndex(index);
+    setShowCitySelector(false);
     setShowDetail(false);
   };
 
@@ -46,13 +48,13 @@ export default function WeatherWidget() {
 
   return (
     <div 
-      className={`h-full rounded-2xl backdrop-blur-xl relative overflow-hidden cursor-pointer transition-all duration-400 ${
+      className={`h-full rounded-2xl backdrop-blur-xl relative overflow-hidden transition-all duration-400 ${
         weather.condition === 'sunny' ? 'weather-sunny' :
         weather.condition === 'windy' ? 'weather-windy' :
         weather.condition === 'rainy' ? 'weather-rainy' :
         'weather-snowy'
       }`}
-      onClick={() => setShowDetail(!showDetail)}
+      style={{ minHeight: '220px' }}
     >
       <style jsx>{`
         .weather-sunny { background: linear-gradient(135deg, rgba(255, 200, 100, 0.3) 0%, rgba(255, 150, 50, 0.2) 100%); }
@@ -224,6 +226,37 @@ export default function WeatherWidget() {
           max-height: 100px;
           opacity: 1;
         }
+
+        .city-selector {
+          position: absolute;
+          top: 40px;
+          right: 10px;
+          background: rgba(0, 0, 0, 0.85);
+          backdrop-filter: blur(10px);
+          border-radius: 12px;
+          padding: 8px;
+          z-index: 100;
+          box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+          min-width: 120px;
+        }
+
+        .city-option {
+          padding: 8px 12px;
+          color: white;
+          cursor: pointer;
+          border-radius: 8px;
+          transition: background 0.2s;
+          font-size: 13px;
+        }
+
+        .city-option:hover {
+          background: rgba(255, 255, 255, 0.1);
+        }
+
+        .city-option.active {
+          background: rgba(59, 130, 246, 0.5);
+          font-weight: 600;
+        }
       `}</style>
 
       {/* 天气图标 */}
@@ -273,20 +306,38 @@ export default function WeatherWidget() {
             <div className="text-white text-xl font-semibold drop-shadow-md">{weather.city}</div>
             <div className="text-white/70 text-xs mt-1">{timeString}</div>
           </div>
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              switchCity();
-            }}
-            className="px-2 py-1 bg-white/20 hover:bg-white/30 rounded-lg text-white text-xs transition-colors"
-            title="切换城市"
-          >
-            切换
-          </button>
+          <div className="relative">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                setShowCitySelector(!showCitySelector);
+              }}
+              className="px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-white text-xs transition-colors widget-interactive"
+              title="选择城市"
+            >
+              选择城市
+            </button>
+            {showCitySelector && (
+              <div className="city-selector widget-interactive">
+                {cities.map((city, index) => (
+                  <div
+                    key={city.city}
+                    className={`city-option ${index === currentCityIndex ? 'active' : ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      selectCity(index);
+                    }}
+                  >
+                    {city.city} {city.temperature}°
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
 
         {/* 温度和天气 */}
-        <div>
+        <div className="cursor-pointer" onClick={() => setShowDetail(!showDetail)}>
           <div className="text-white text-5xl font-extralight drop-shadow-lg" style={{ letterSpacing: '-2px' }}>
             {weather.temperature}°
           </div>
