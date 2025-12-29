@@ -16,6 +16,7 @@ import MusicPlayerApp from './components/apps/MusicPlayerApp';
 import VideoPlayerApp from './components/apps/VideoPlayerApp';
 import TextEditorApp from './components/apps/TextEditorApp';
 import PaintApp from './components/apps/PaintApp';
+import GameCenterApp from './components/apps/GameCenterApp';
 import Dock from './components/Dock';
 import { useTheme } from './contexts/ThemeContext';
 import LoginScreen from './components/LoginScreen';
@@ -24,7 +25,7 @@ import Notifications, { type Notification } from './components/Notifications';
 interface Window {
   id: string;
   title: string;
-  type: 'terminal' | 'files' | 'monitor' | 'about' | 'appstore' | 'applist' | 'browser' | 'settings' | 'music' | 'video' | 'texteditor' | 'paint';
+  type: 'terminal' | 'files' | 'monitor' | 'about' | 'appstore' | 'applist' | 'browser' | 'settings' | 'music' | 'video' | 'texteditor' | 'paint' | 'gamecenter';
   x: number;
   y: number;
   width: number;
@@ -160,6 +161,7 @@ function LinuxDesktop() {
     video: { title: 'Video Player', width: 900, height: 700 },
     texteditor: { title: 'Text Editor', width: 800, height: 600 },
     paint: { title: 'Paint', width: 1000, height: 700 },
+    gamecenter: { title: 'Game Center', width: 800, height: 600 },
   };
 
   const openWindow = (type: Window['type']) => {
@@ -567,6 +569,7 @@ function DraggableWindow({
         {window.type === 'video' && <VideoPlayerApp />}
         {window.type === 'texteditor' && <TextEditorApp />}
         {window.type === 'paint' && <PaintApp />}
+        {window.type === 'gamecenter' && <GameCenterApp />}
       </div>
 
       {/* Resize Handles - 只在非最大化时显示 */}

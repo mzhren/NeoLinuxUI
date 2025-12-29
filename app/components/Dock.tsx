@@ -8,11 +8,12 @@ import VideoIcon from './icons/VideoIcon';
 import AppStoreIcon from './icons/AppStoreIcon';
 import MonitorIcon from './icons/MonitorIcon';
 import PaintIcon from './icons/PaintIcon';
+import GameCenterIcon from './icons/GameCenterIcon';
 
 interface Window {
   id: string;
   title: string;
-  type: 'terminal' | 'files' | 'monitor' | 'about' | 'appstore' | 'applist' | 'browser' | 'settings' | 'music' | 'video' | 'texteditor' | 'paint';
+  type: 'terminal' | 'files' | 'monitor' | 'about' | 'appstore' | 'applist' | 'browser' | 'settings' | 'music' | 'video' | 'texteditor' | 'paint' | 'gamecenter';
   minimized: boolean;
 }
 
@@ -48,6 +49,7 @@ export default function Dock({ windows, openWindow, restoreWindow }: DockProps) 
     { icon: 'paint', label: 'Paint', type: 'paint' as const },
     { icon: 'music', label: 'Music', type: 'music' as const },
     { icon: 'video', label: 'Video', type: 'video' as const },
+    { icon: 'gamecenter', label: 'Game Center', type: 'gamecenter' as const },
     { icon: 'monitor', label: 'Monitor', type: 'monitor' as const },
     { icon: 'appstore', label: 'App Store', type: 'appstore' as const },
     { icon: '⚙️', label: 'Settings', type: 'settings' as const },
@@ -109,6 +111,7 @@ function getWindowIcon(type: Window['type']): string {
     video: 'video',
     texteditor: '📝',
     paint: 'paint',
+    gamecenter: 'gamecenter',
   };
   return iconMap[type] || 'ℹ️';
 }
@@ -216,6 +219,8 @@ function DockIcon({
           <MonitorIcon className="w-8 h-8" />
         ) : icon === 'paint' ? (
           <PaintIcon className="w-8 h-8" />
+        ) : icon === 'gamecenter' ? (
+          <GameCenterIcon className="w-8 h-8" />
         ) : (
           <span className="text-3xl">{icon}</span>
         )}
