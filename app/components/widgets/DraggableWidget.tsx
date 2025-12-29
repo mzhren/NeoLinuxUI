@@ -18,6 +18,7 @@ export interface Widget {
   width: number;
   height: number;
   opacity?: number; // 背景透明度 0-1
+  initialCity?: string; // weather widget 的初始城市
 }
 
 interface DraggableWidgetProps {
@@ -133,7 +134,7 @@ export default function DraggableWidget({ widget, onRemove, setWidgets }: Dragga
       case 'clock':
         return <ClockWidget />;
       case 'weather':
-        return <WeatherWidget />;
+        return <WeatherWidget initialCity={widget.initialCity} />;
       case 'calendar':
         return <CalendarWidget />;
       case 'music':

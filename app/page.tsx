@@ -102,8 +102,14 @@ function LinuxDesktop() {
     if (widgets.length === 0 && typeof window !== 'undefined') {
       const centerX = (window.innerWidth - 800) / 2;
       const centerY = (window.innerHeight - 400) / 2;
+      
+      // 右上角位置计算
+      const weatherX = window.innerWidth - 300;
+      const weatherY = 50;
+      
       setWidgets([
         { id: '1', type: 'flipclock', x: centerX, y: centerY, width: 800, height: 400, opacity: 0.1 },
+        { id: '2', type: 'weather', x: weatherX, y: weatherY, width: 240, height: 320, opacity: 0.4, initialCity: '广州' },
       ]);
     }
   }, []);

@@ -20,8 +20,13 @@ const cities: WeatherData[] = [
   { city: '成都', temperature: 18, condition: 'windy', humidity: 65, windSpeed: 25, pressure: 1009 },
 ];
 
-export default function WeatherWidget() {
-  const [currentCityIndex, setCurrentCityIndex] = useState(0);
+interface WeatherWidgetProps {
+  initialCity?: string;
+}
+
+export default function WeatherWidget({ initialCity }: WeatherWidgetProps) {
+  const initialIndex = initialCity ? cities.findIndex(c => c.city === initialCity) : 0;
+  const [currentCityIndex, setCurrentCityIndex] = useState(initialIndex >= 0 ? initialIndex : 0);
   const [time, setTime] = useState(new Date());
   const [showDetail, setShowDetail] = useState(false);
   const [showCitySelector, setShowCitySelector] = useState(false);
