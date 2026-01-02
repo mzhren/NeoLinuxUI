@@ -1,42 +1,119 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { WEATHER_CITIES, WEATHER_UPDATE_INTERVAL } from '@/app/config/weather';
 
 interface WeatherData {
   city: string;
+  cityId: string;
   temperature: number;
-  condition: 'sunny' | 'windy' | 'rainy' | 'snowy';
+  condition: 'sunny' | 'windy' | 'rainy' | 'snowy' | 'cloudy';
+  conditionText: string;
   humidity: number;
   windSpeed: number;
   pressure: number;
+  feelsLike?: number;
 }
-
-const cities: WeatherData[] = [
-  { city: '北京', temperature: 28, condition: 'sunny', humidity: 35, windSpeed: 12, pressure: 1012 },
-  { city: '上海', temperature: 22, condition: 'windy', humidity: 55, windSpeed: 38, pressure: 1008 },
-  { city: '广州', temperature: 24, condition: 'rainy', humidity: 95, windSpeed: 18, pressure: 1005 },
-  { city: '哈尔滨', temperature: -15, condition: 'snowy', humidity: 75, windSpeed: 22, pressure: 1018 },
-  { city: '深圳', temperature: 26, condition: 'sunny', humidity: 70, windSpeed: 15, pressure: 1010 },
-  { city: '成都', temperature: 18, condition: 'windy', humidity: 65, windSpeed: 25, pressure: 1009 },
-];
 
 interface WeatherWidgetProps {
   initialCity?: string;
 }
 
 export default function WeatherWidget({ initialCity }: WeatherWidgetProps) {
-  const initialIndex = initialCity ? cities.findIndex(c => c.city === initialCity) : 0;
+  const initialIndex = initialCity ? WEATHER_CITIES.findIndex(c => c.city === initialCity) : 0;
   const [currentCityIndex, setCurrentCityIndex] = useState(initialIndex >= 0 ? initialIndex : 0);
   const [time, setTime] = useState(new Date());
   const [showDetail, setShowDetail] = useState(false);
   const [showCitySelector, setShowCitySelector] = useState(false);
+  const [weather, setWeather] = useState<WeatherData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const weather = cities[currentCityIndex];
+  // 获取天气数据 - 通过自建 API Route
+  const fetchWeather = async (cityId: string, cityName: string) => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // 调用自建的 API Route
+      const response = await fetch(`/api/weather?cityId=${cityId}`);
+      
+      if (!response.ok) {
+        throw new Error('获取天气数据失败');
+      }
+      
+      const result = await response.json();
+      
+      if (!result.success) {
+        throw new Error(result.error || '天气API返回错误');
+      }
+      
+      const now = result.data;
+      
+      // 映射天气图标到我们的条件类型
+      const iconCode = parseInt(now.icon);
+      let condition: WeatherData['condition'] = 'sunny';
+      
+      if (iconCode >= 100 && iconCode <= 103) {
+        condition = 'sunny'; // 晴
+      } else if (iconCode >= 104 && iconCode <= 213) {
+        condition = 'cloudy'; // 多云/阴
+      } else if ((iconCode >= 300 && iconCode <= 318) || (iconCode >= 399 && iconCode <= 499)) {
+        condition = 'rainy'; // 雨
+      } else if ((iconCode >= 400 && iconCode <= 457) || iconCode === 499) {
+        condition = 'snowy'; // 雪
+      } else if (iconCode >= 500 && iconCode <= 515) {
+        condition = 'windy'; // 风
+      }
+      
+      setWeather({
+        city: cityName,
+        cityId,
+        temperature: Math.round(parseFloat(now.temperature)),
+        condition,
+        conditionText: now.text,
+        humidity: parseInt(now.humidity),
+        windSpeed: Math.round(parseFloat(now.windSpeed)),
+        pressure: parseInt(now.pressure),
+        feelsLike: Math.round(parseFloat(now.feelsLike)),
+      });
+      
+    } catch (err) {
+      console.error('获取天气失败:', err);
+      setError('暂时无法获取天气数据');
+      // 使用默认数据
+      setWeather({
+        city: cityName,
+        cityId,
+        temperature: 25,
+        condition: 'sunny',
+        conditionText: '晴',
+        humidity: 50,
+        windSpeed: 10,
+        pressure: 1013,
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     const timer = setInterval(() => setTime(new Date()), 60000);
     return () => clearInterval(timer);
   }, []);
+
+  // 初始加载天气数据
+  useEffect(() => {
+    const city = WEATHER_CITIES[currentCityIndex];
+    fetchWeather(city.cityId, city.city);
+    
+    // 定期更新天气数据
+    const weatherTimer = setInterval(() => {
+      fetchWeather(city.cityId, city.city);
+    }, WEATHER_UPDATE_INTERVAL);
+    
+    return () => clearInterval(weatherTimer);
+  }, [currentCityIndex]);
 
   const selectCity = (index: number) => {
     setCurrentCityIndex(index);
@@ -45,11 +122,39 @@ export default function WeatherWidget({ initialCity }: WeatherWidgetProps) {
   };
 
   const getConditionName = (condition: string) => {
-    const names = { sunny: '晴天', windy: '大风', rainy: '暴雨', snowy: '暴雪' };
+    const names = { 
+      sunny: '晴天', 
+      windy: '大风', 
+      rainy: '暴雨', 
+      snowy: '暴雪',
+      cloudy: '多云'
+    };
     return names[condition as keyof typeof names] || condition;
   };
 
   const timeString = `${String(time.getHours()).padStart(2, '0')}:${String(time.getMinutes()).padStart(2, '0')}`;
+
+  if (loading && !weather) {
+    return (
+      <div className="h-full rounded-2xl backdrop-blur-xl bg-gradient-to-br from-blue-100/30 to-purple-100/30 flex items-center justify-center">
+        <div className="text-white/80 text-center">
+          <div className="text-3xl mb-2">⏳</div>
+          <div className="text-sm">加载天气中...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!weather) {
+    return (
+      <div className="h-full rounded-2xl backdrop-blur-xl bg-gradient-to-br from-red-100/30 to-orange-100/30 flex items-center justify-center">
+        <div className="text-white/80 text-center">
+          <div className="text-3xl mb-2">❌</div>
+          <div className="text-sm">无法加载天气数据</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div 
@@ -57,6 +162,7 @@ export default function WeatherWidget({ initialCity }: WeatherWidgetProps) {
         weather.condition === 'sunny' ? 'weather-sunny' :
         weather.condition === 'windy' ? 'weather-windy' :
         weather.condition === 'rainy' ? 'weather-rainy' :
+        weather.condition === 'cloudy' ? 'weather-cloudy' :
         'weather-snowy'
       }`}
       style={{ minHeight: '220px' }}
@@ -66,6 +172,7 @@ export default function WeatherWidget({ initialCity }: WeatherWidgetProps) {
         .weather-windy { background: linear-gradient(135deg, rgba(100, 150, 200, 0.3) 0%, rgba(150, 100, 200, 0.2) 100%); }
         .weather-rainy { background: linear-gradient(135deg, rgba(80, 100, 150, 0.4) 0%, rgba(60, 80, 130, 0.3) 100%); }
         .weather-snowy { background: linear-gradient(135deg, rgba(200, 220, 255, 0.4) 0%, rgba(160, 180, 220, 0.3) 100%); }
+        .weather-cloudy { background: linear-gradient(135deg, rgba(150, 160, 180, 0.3) 0%, rgba(120, 130, 150, 0.2) 100%); }
 
         .weather-icon {
           position: absolute;
@@ -243,6 +350,26 @@ export default function WeatherWidget({ initialCity }: WeatherWidgetProps) {
           z-index: 100;
           box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
           min-width: 120px;
+          max-height: 240px;
+          overflow-y: auto;
+        }
+
+        .city-selector::-webkit-scrollbar {
+          width: 6px;
+        }
+
+        .city-selector::-webkit-scrollbar-track {
+          background: rgba(255, 255, 255, 0.1);
+          border-radius: 3px;
+        }
+
+        .city-selector::-webkit-scrollbar-thumb {
+          background: rgba(255, 255, 255, 0.3);
+          border-radius: 3px;
+        }
+
+        .city-selector::-webkit-scrollbar-thumb:hover {
+          background: rgba(255, 255, 255, 0.5);
         }
 
         .city-option {
@@ -276,13 +403,17 @@ export default function WeatherWidget({ initialCity }: WeatherWidgetProps) {
             </div>
           </>
         )}
-        {weather.condition === 'windy' && (
+        {(weather.condition === 'windy' || weather.condition === 'cloudy') && (
           <>
             <div className="cloud cloud-1"></div>
             <div className="cloud cloud-2"></div>
-            <div className="wind-line wind-line-1"></div>
-            <div className="wind-line wind-line-2"></div>
-            <div className="wind-line wind-line-3"></div>
+            {weather.condition === 'windy' && (
+              <>
+                <div className="wind-line wind-line-1"></div>
+                <div className="wind-line wind-line-2"></div>
+                <div className="wind-line wind-line-3"></div>
+              </>
+            )}
           </>
         )}
         {weather.condition === 'rainy' && (
@@ -317,14 +448,14 @@ export default function WeatherWidget({ initialCity }: WeatherWidgetProps) {
                 e.stopPropagation();
                 setShowCitySelector(!showCitySelector);
               }}
-              className="px-3 py-1.5 bg-white/20 hover:bg-white/30 rounded-lg text-white text-xs transition-colors widget-interactive"
+              className="px-3 py-1.5 bg-white/20 hover:bg-white/30 opacity-20 hover:opacity-80 cursor-pointer rounded-lg text-white text-xs transition-colors widget-interactive"
               title="选择城市"
             >
               选择城市
             </button>
             {showCitySelector && (
               <div className="city-selector widget-interactive">
-                {cities.map((city, index) => (
+                {WEATHER_CITIES.map((city, index) => (
                   <div
                     key={city.city}
                     className={`city-option ${index === currentCityIndex ? 'active' : ''}`}
@@ -333,7 +464,7 @@ export default function WeatherWidget({ initialCity }: WeatherWidgetProps) {
                       selectCity(index);
                     }}
                   >
-                    {city.city} {city.temperature}°
+                    {city.city}
                   </div>
                 ))}
               </div>
@@ -368,17 +499,15 @@ export default function WeatherWidget({ initialCity }: WeatherWidgetProps) {
         {/* 详情面板 */}
         <div className={`detail-panel ${showDetail ? 'show' : ''}`} style={{ marginTop: '10px' }}>
           <div className="flex justify-between py-2 border-b border-white/10 text-xs">
-            <span className="text-white/70">紫外线指数</span>
-            <span className="text-white font-medium">
-              {weather.condition === 'sunny' ? '8 (很强)' : weather.condition === 'rainy' ? '1 (弱)' : '3 (中等)'}
-            </span>
+            <span className="text-white/70">天气状况</span>
+            <span className="text-white font-medium">{weather.conditionText}</span>
           </div>
-          <div className="flex justify-between py-2 text-xs">
-            <span className="text-white/70">体感温度</span>
-            <span className="text-white font-medium">
-              {weather.temperature + (weather.condition === 'windy' ? -3 : weather.condition === 'sunny' ? 2 : 0)}°
-            </span>
-          </div>
+          {weather.feelsLike && (
+            <div className="flex justify-between py-2 text-xs">
+              <span className="text-white/70">体感温度</span>
+              <span className="text-white font-medium">{weather.feelsLike}°</span>
+            </div>
+          )}
         </div>
       </div>
     </div>
